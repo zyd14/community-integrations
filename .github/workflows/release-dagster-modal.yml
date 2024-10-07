@@ -4,6 +4,7 @@
 #
 #     https://docs.astral.sh/uv/guides/integration/github/
 #     https://docs.astral.sh/uv/guides/publish/#preparing-your-project-for-packaging
+#     https://docs.pypi.org/trusted-publishers/adding-a-publisher/
 #
 
 on:
@@ -34,4 +35,10 @@ jobs:
         run: uv build
 
       - name: Publish
-        run: uv publish  # references UV_PUBLISH_TOKEN, UV_PUBLISH_USERNAME, UV_PUBLISH_PASSWORD
+        env:
+          UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
+        run: |
+          uv publish \
+              --username __token__ \
+              --password $UV_PUBLISH_TOKEN \
+              --publish-url $UV_PUBLISH_URL
