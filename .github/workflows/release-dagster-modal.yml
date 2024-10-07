@@ -20,6 +20,7 @@ jobs:
   build:
     name: python
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout
