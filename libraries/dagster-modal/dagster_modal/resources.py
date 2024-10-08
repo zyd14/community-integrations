@@ -32,4 +32,3 @@ class ModalClient(PipesSubprocessClient):
             extras=extras,
             env=env,
         )
-
