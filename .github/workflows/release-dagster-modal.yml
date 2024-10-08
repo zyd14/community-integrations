@@ -37,7 +37,7 @@ jobs:
 
       - name: Publish
         # NOTE: we can add GitHub as a trusted publisher to avoid setting credentials manually (see reference above)
-        run: uv publish --token $UV_PUBLISH_TOKEN --publish-url $UV_PUBLISH_URL
+        run: uv publish
         env:
           UV_PUBLISH_TOKEN: ${{ secrets.UV_PUBLISH_TOKEN }}
           UV_PUBLISH_URL: ${{ vars.UV_PUBLISH_URL }}
