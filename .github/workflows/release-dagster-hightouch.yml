@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-release-dagster-hightouch:
-    uses: .github/workflows/template-release.yml
+    uses: ./.github/workflows/template-release.yml
     with:
       library_name: dagster-hightouch
       working_directory: ./libraries/dagster-hightouch

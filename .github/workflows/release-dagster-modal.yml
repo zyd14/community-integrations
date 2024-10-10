@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-release-dagster-modal:
-    uses: .github/workflows/template-release.yml
+    uses: ./.github/workflows/template-release.yml
     with:
       library_name: dagster-modal
       working_directory: ./libraries/dagster-modal
