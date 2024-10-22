@@ -1,0 +1,26 @@
+name: test-dagster-modal
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'libraries/dagster-modal/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+
+      - name: Install Python
+        run: uv python install
+        working-directory: 'libraries/dagster-modal'
+
+      - name: Run tests
+        working-directory: path/to/your/directory
+        run: uv run pytest
