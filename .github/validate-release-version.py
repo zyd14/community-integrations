@@ -17,7 +17,7 @@ import os
 
 
 if len(sys.argv) != 3:
-    print("Requires positional argument: <github.ref_name>")
+    print("Requires positional arguments: <path to dist> <github.ref_name>")
     sys.exit(1)
 
 dist_path = sys.argv[1]
@@ -28,6 +28,8 @@ if not os.path.exists(dist_path):
     sys.exit(1)
 
 for filename in os.listdir(dist_path):
+    if filename.startswith("."):
+        continue
     if not filename.startswith(github_ref_name):
         print(f"{filename} does not start with prefix {github_ref_name}")
         sys.exit(1)
