@@ -1,9 +1,9 @@
-name: Build and release dagster-hightouch
+name: build-and-release-dagster-hightouch
 
 on:
   push:
     tags:
-      - 'dagster-hightouch-v*.*.*'
+      - 'dagster_hightouch-v*.*.*'
 
 jobs:
   build-and-release-dagster-hightouch:

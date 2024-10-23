@@ -7,7 +7,7 @@
 #     https://docs.pypi.org/trusted-publishers/adding-a-publisher/
 #
 
-name: Build and release
+name: build-and-release
 
 on:
   workflow_call:

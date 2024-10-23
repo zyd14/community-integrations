@@ -1,9 +1,9 @@
-name: Build and release dagster-hex
+name: build-and-release-dagster-hex
 
 on:
   push:
     tags:
-      - 'dagster-hex-v*.*.*'
+      - 'dagster_hex-v*.*.*'
 
 jobs:
   build-and-release-dagster-hex:

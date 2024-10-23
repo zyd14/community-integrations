@@ -1,4 +1,4 @@
-name: check-dagster-modal
+name: quality-check-dagster-modal
 on:
   pull_request:
     types: [opened, synchronize, reopened]
