@@ -4,14 +4,14 @@ Building and releasing integrations is accomplished with GitHub actions where ea
 
 For example, the `dagster-modal` integration has a workflow defined at `.github/workflows/release-dagster-modal.yml`.
 
-Releases are triggered by creating a git tag of the pattern `<integration-name>-vX.X.X`. For example:
+Releases are triggered by creating a git tag of the pattern `<integration-name>-X.X.X`. For example:
 
 ```sh
-git tag dagster_modal-v0.1.3
+git tag dagster_modal-0.1.3
 ```
 
 ```sh
-git push origin dagster_modal-v0.1.3
+git push origin dagster_modal-0.1.3
 ```
 
 Where the tag must match the prefix of the files generated in the `dist/` folder:

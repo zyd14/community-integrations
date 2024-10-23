@@ -8,26 +8,26 @@ Tag must adhere to naming convention of distributed files. For example, the tag
 
 USAGE
 
-    $ python ../../.github/validate-release-version.py dagster_modal-v0.1.3
+    $ python .github/validate-release-version.py libraries/dagster-modal/dist dagster_modal-0.1.3
 
 """
 
 import sys
 import os
 
-RELEASE_DIRECTORY = "dist"
 
-if len(sys.argv) != 2:
+if len(sys.argv) != 3:
     print("Requires positional argument: <github.ref_name>")
     sys.exit(1)
 
-github_ref_name = sys.argv[1]
+dist_path = sys.argv[1]
+github_ref_name = sys.argv[2]
 
-if not os.path.exists(RELEASE_DIRECTORY):
-    print("Release directory `dist/` must exist in cwd")
+if not os.path.exists(dist_path):
+    print("Release directory `dist/` must exist")
     sys.exit(1)
 
-for filename in os.listdir(RELEASE_DIRECTORY):
+for filename in os.listdir(dist_path):
     if not filename.startswith(github_ref_name):
         print(f"{filename} does not start with prefix {github_ref_name}")
         sys.exit(1)
