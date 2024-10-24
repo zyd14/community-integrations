@@ -18,15 +18,20 @@ This project aims to foster growth and collaboration within the Dagster ecosyste
     cd community-integrations
     ```
 
-3. Create a new branch for your integration
+## Standards
 
-    ```sh
-    git checkout -b my-new-integration
-    ```
+- Standard code formatting is enforced using the [ruff](https://github.com/astral-sh/ruff) package
+- Unit tests should be included for core functionality of the integration
+- Running a static type checker like [pyright](https://github.com/microsoft/pyright) is heavily encouraged
 
-4. See below for adding an integration...
+For each integration unit tests and formatting are *required* to pass before it can be merged into the _main_ branch.
 
-## Adding an integration
+Each integration typically includes a `Makefile` that will have directives for the above checks, for example:
+
+- `make test`
+- `make ruff`
+
+## Creating a new integration
 
 Integrations live in the `libraries/` folder of this repository. We recommend using `uv` for project management.
 
