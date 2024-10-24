@@ -35,13 +35,15 @@ Each integration typically includes a `Makefile` that will have directives for t
 
 Integrations live in the `libraries/` folder of this repository. We recommend using `uv` for project management.
 
+Packages are to be named `dagster-contrib-<name>` where `<name>` is the name of the tool or service that you are integrating with.
+
 1. Navigate to the `libraries/` directory
     ```sh
     cd libraries
     ```
-2. Copy the `_template` integration
+2. Create a copy the `_template` integration
     ```sh
-    cp -r _template my-integration
+    cp -r _template dagster-contrib-<my-package>
     ```
 3. Replace the references of `example-integration` with the name of your module
 3. Update the README to include:
