@@ -8,3 +8,8 @@ dependencies = [
     "dagster>=0.14",
     "requests>=2.0",
 ]
+
+[tool.uv]
+dev-dependencies = [
+    "pyright>=1.1.386",
+]

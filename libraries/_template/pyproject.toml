@@ -12,6 +12,7 @@ dependencies = [
 dev-dependencies = [
     "ruff",
     "pytest",
+    "pyright>=1.1.386",
 ]
 
 [tool.setuptools]

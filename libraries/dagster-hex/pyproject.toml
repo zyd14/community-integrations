@@ -16,6 +16,7 @@ dev-dependencies = [
     "types-requests",
     "pytest-mock",
     "requests-mock",
+    "pyright>=1.1.386",
 ]
 
 [tool.setuptools]
