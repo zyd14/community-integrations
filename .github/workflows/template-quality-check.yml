@@ -3,9 +3,6 @@ name: quality-check
 on:
   workflow_call:
     inputs:
-      library_name:
-        required: true
-        type: string
       working_directory:
         required: true
         type: string
