@@ -24,12 +24,13 @@ This project aims to foster growth and collaboration within the Dagster ecosyste
 - Unit tests should be included for core functionality of the integration
 - Running a static type checker like [pyright](https://github.com/microsoft/pyright) is heavily encouraged
 
-For each integration unit tests and formatting are *required* to pass before it can be merged into the _main_ branch.
+For each integration unit tests, formatting, and pyright are *required* to pass before it can be merged into the _main_ branch.
 
 Each integration typically includes a `Makefile` that will have directives for the above checks, for example:
 
 - `make test`
 - `make ruff`
+- `make check`
 
 ## Creating a new integration
 

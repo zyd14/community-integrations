@@ -29,10 +29,14 @@ jobs:
         working-directory: ${{ inputs.working_directory }}
         run: uv sync
 
-      - name: Ruff check
+      - name: Ruff
         working-directory: ${{ inputs.working_directory }}
         run: uv run ruff check
 
-      - name: Run pytest
+      - name: Pyright
+        working-directory: ${{ inputs.working_directory }}
+        run: uv run pyright
+
+      - name: Pytest
         working-directory: ${{ inputs.working_directory }}
         run: uv run pytest
