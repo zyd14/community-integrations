@@ -30,6 +30,8 @@ fn main() {
 }
 ```
 
+<img width="1355" alt="image" src="https://github.com/user-attachments/assets/ddc8c261-3e96-4e82-ad4c-723dd6b3dece">
+
 It also demonstrates how to run the Rust binary in a subprocess from Dagster. Note, that it's also possible to launch processes in external compute environments like Kubernetes.
 
 ```python
