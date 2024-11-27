@@ -93,7 +93,7 @@ struct PipesMessagesParams {
 
 // partial translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L798-L838
-fn open_dagster_pipes() -> PipesContext {
+pub fn open_dagster_pipes() -> PipesContext {
     // approximation of PipesEnvVarParamsLoader
     let context_env_var = env::var("DAGSTER_PIPES_CONTEXT").unwrap();
     let context_params: PipesContextParams = decode_env_var(&context_env_var);
@@ -113,21 +113,3 @@ fn open_dagster_pipes() -> PipesContext {
         writer: PipesStderrMessageWriter {},
     };
 }
-
-fn check_large_dataframe_for_nulls() -> u32 {
-    // smoke and mirrors
-    return 1;
-}
-
-//fn main() {
-//    let mut context = open_dagster_pipes();
-//    let null_count = check_large_dataframe_for_nulls();
-//    let passed = null_count == 0;
-//    let metadata = json!({"null_count": {"raw_value": null_count, "type": "int"}});
-//    context.report_asset_check(
-//        "telem_post_processing_check",
-//        passed,
-//        "telem_post_processing",
-//        metadata,
-//    );
-//}

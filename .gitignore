@@ -1,1 +1,11 @@
-/target
+target/
+
+# env
+.direnv/
+.envrc
+
+# python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/

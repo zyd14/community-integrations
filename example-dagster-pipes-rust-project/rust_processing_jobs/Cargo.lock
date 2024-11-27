@@ -31,7 +31,9 @@ dependencies = [
 
 [[package]]
 name = "dagster_pipes_rust"
-version = "0.1.1"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fae8655d2bb1fc14886568f7f939db77e92e11fde4e65b45671f1f1ad52a111"
 dependencies = [
  "base64",
  "flate2",
@@ -86,6 +88,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b5b9d34b8991d19d98081b46eacdd8eb58c6f2b201139f7c5f643cc155a633af"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "rust_processing_jobs"
+version = "0.1.0"
+dependencies = [
+ "dagster_pipes_rust",
+ "serde_json",
 ]
 
 [[package]]
