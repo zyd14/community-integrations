@@ -46,7 +46,7 @@ struct PipesContext {
     writer: PipesStderrMessageWriter,
 }
 impl PipesContext {
-    fn report_asset_check(
+    pub fn report_asset_check(
         &mut self,
         check_name: &str,
         passed: bool,
