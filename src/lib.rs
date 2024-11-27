@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::env;
+use std::fs::OpenOptions;
 use std::io::prelude::*;
+use std::io::Write;
 
 use flate2::read::ZlibDecoder;
 use serde::{de, Deserialize, Serialize};
@@ -41,11 +43,26 @@ struct PipesMessage {
 // partial translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L859-L871
 #[derive(Debug)]
-struct PipesContext {
+pub struct PipesContext {
     data: PipesContextData,
-    writer: PipesStderrMessageWriter,
+    writer: PipesFileMessageWriter,
 }
 impl PipesContext {
+    pub fn report_asset_materialization(&mut self, asset_key: &str, metadata: serde_json::Value) {
+        let params: HashMap<String, serde_json::Value> = HashMap::from([
+            ("asset_key".to_string(), json!(asset_key)),
+            ("metadata".to_string(), metadata),
+            ("data_version".to_string(), json!(null)),  // TODO - support data versions
+        ]);
+
+        let msg = PipesMessage {
+            __dagster_pipes_version: "0.1".to_string(),
+            method: "report_asset_materialization".to_string(),
+            params: Some(params),
+        };
+        self.writer.write_message(msg);
+    }
+
     pub fn report_asset_check(
         &mut self,
         check_name: &str,
@@ -71,11 +88,21 @@ impl PipesContext {
 }
 
 #[derive(Debug)]
-struct PipesStderrMessageWriter {}
-impl PipesStderrMessageWriter {
+struct PipesFileMessageWriter {
+    path: String,
+}
+impl PipesFileMessageWriter {
     fn write_message(&mut self, message: PipesMessage) {
         let serialized_msg = serde_json::to_string(&message).unwrap();
-        eprintln!("{}", serialized_msg);
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .open(&self.path)
+            .unwrap();
+        writeln!(file, "{}", serialized_msg);
+
+        // TODO - optional `stderr` based writing
+        //eprintln!("{}", serialized_msg);
     }
 }
 
@@ -87,8 +114,8 @@ struct PipesContextParams {
 
 #[derive(Debug, Deserialize)]
 struct PipesMessagesParams {
-    path: Option<String>,  // write to file (unsupported)
-    stdio: Option<String>, // stderr | stdout
+    path: Option<String>,  // write to file
+    stdio: Option<String>, // stderr | stdout (unsupported)
 }
 
 // partial translation of
@@ -100,16 +127,19 @@ pub fn open_dagster_pipes() -> PipesContext {
     let context_data = context_params
         .data
         .expect("Unable to load dagster pipes context, only direct env var data supported.");
+
     let msg_env_var = env::var("DAGSTER_PIPES_MESSAGES").unwrap();
     let messages_params: PipesMessagesParams = decode_env_var(&msg_env_var);
-    let stdio = messages_params
-        .stdio
-        .expect("Unable to load dagster pipes messages, only stdio message writing supported.");
-    if stdio != "stderr" {
-        panic!("only stderr supported for dagster pipes messages")
-    }
+    let path = messages_params.path.expect(
+        "Unable to write Dagster messages, only temporary file message writing is supported.",
+    );
+
+    //if stdio != "stderr" {
+    //    panic!("only stderr supported for dagster pipes messages")
+    //}
+
     return PipesContext {
         data: context_data,
-        writer: PipesStderrMessageWriter {},
+        writer: PipesFileMessageWriter { path },
     };
 }

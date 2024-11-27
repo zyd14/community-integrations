@@ -31,9 +31,7 @@ dependencies = [
 
 [[package]]
 name = "dagster_pipes_rust"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a0d0fad30c349df35d072ddf253eba937779fcb96dec0cf2b03b11fce1836f6"
+version = "0.1.2"
 dependencies = [
  "base64",
  "flate2",

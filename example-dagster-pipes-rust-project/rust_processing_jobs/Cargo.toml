@@ -4,5 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-dagster_pipes_rust = "0.1.2"
+dagster_pipes_rust = { path = "../.." }
 serde_json = "1.0.133"
+
+

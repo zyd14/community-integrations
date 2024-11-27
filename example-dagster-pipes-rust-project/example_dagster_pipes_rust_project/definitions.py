@@ -5,7 +5,7 @@ import dagster as dg
 
 @dg.asset(
     group_name="pipes",
-    # partitions_def=dg.DailyPartitionsDefinition("2024-10-01"),
+    kinds={"rust"},
 )
 def example_rust_subprocess_asset(
     context: dg.AssetExecutionContext, pipes_subprocess_client: dg.PipesSubprocessClient
@@ -14,11 +14,17 @@ def example_rust_subprocess_asset(
     cmd = [shutil.which("cargo"), "run"]
     cwd = dg.file_relative_path(__file__, "../rust_processing_jobs")
     return pipes_subprocess_client.run(
-        command=cmd, cwd=cwd, context=context
+        command=cmd,
+        cwd=cwd,
+        context=context,
     ).get_materialize_result()
 
 
 defs = dg.Definitions(
     assets=[example_rust_subprocess_asset],
-    resources={"pipes_subprocess_client": dg.PipesSubprocessClient()},
+    resources={
+        "pipes_subprocess_client": dg.PipesSubprocessClient(
+            context_injector=dg.PipesEnvContextInjector(),
+        )
+    },
 )
