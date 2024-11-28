@@ -4,6 +4,7 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::Write;
 
+use base64::prelude::*;
 use flate2::read::ZlibDecoder;
 use serde::{de, Deserialize, Serialize};
 use serde_json::json;
@@ -14,12 +15,11 @@ fn decode_env_var<T>(param: &str) -> T
 where
     T: de::DeserializeOwned,
 {
-    let zlib_compressed_slice = base64::decode(param).unwrap();
+    let zlib_compressed_slice = BASE64_STANDARD.decode(param).unwrap();
     let mut decoder = ZlibDecoder::new(&zlib_compressed_slice[..]);
     let mut json_str = String::new();
     decoder.read_to_string(&mut json_str).unwrap();
-    let value: T = serde_json::from_str(&json_str).unwrap();
-    return value;
+    serde_json::from_str(&json_str).unwrap()
 }
 
 // partial translation of
@@ -47,12 +47,13 @@ pub struct PipesContext {
     data: PipesContextData,
     writer: PipesFileMessageWriter,
 }
+
 impl PipesContext {
     pub fn report_asset_materialization(&mut self, asset_key: &str, metadata: serde_json::Value) {
         let params: HashMap<String, serde_json::Value> = HashMap::from([
             ("asset_key".to_string(), json!(asset_key)),
             ("metadata".to_string(), metadata),
-            ("data_version".to_string(), json!(null)),  // TODO - support data versions
+            ("data_version".to_string(), json!(null)), // TODO - support data versions
         ]);
 
         let msg = PipesMessage {
@@ -94,12 +95,8 @@ struct PipesFileMessageWriter {
 impl PipesFileMessageWriter {
     fn write_message(&mut self, message: PipesMessage) {
         let serialized_msg = serde_json::to_string(&message).unwrap();
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open(&self.path)
-            .unwrap();
-        writeln!(file, "{}", serialized_msg);
+        let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
+        writeln!(file, "{}", serialized_msg).unwrap();
 
         // TODO - optional `stderr` based writing
         //eprintln!("{}", serialized_msg);
@@ -138,8 +135,8 @@ pub fn open_dagster_pipes() -> PipesContext {
     //    panic!("only stderr supported for dagster pipes messages")
     //}
 
-    return PipesContext {
+    PipesContext {
         data: context_data,
         writer: PipesFileMessageWriter { path },
-    };
+    }
 }
