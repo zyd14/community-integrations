@@ -14,7 +14,7 @@ mod params_loader;
 
 // partial translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L94-L108
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, PartialEq)]
 pub struct PipesContextData {
     asset_keys: Option<Vec<String>>,
     run_id: String,
