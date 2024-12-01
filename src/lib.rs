@@ -1,16 +1,17 @@
+mod context_loader;
+mod params_loader;
+
 use std::collections::HashMap;
 use std::fs::OpenOptions;
 use std::io::Write;
 
-use context_loader::PipesContextLoader;
-use context_loader::PipesDefaultContextLoader;
-use params_loader::PipesEnvVarParamsLoader;
-use params_loader::PipesParamsLoader;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-mod context_loader;
-mod params_loader;
+use crate::context_loader::PipesContextLoader;
+use crate::context_loader::PipesDefaultContextLoader;
+use crate::params_loader::PipesEnvVarParamsLoader;
+use crate::params_loader::PipesParamsLoader;
 
 // partial translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L94-L108

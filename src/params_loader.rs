@@ -4,6 +4,9 @@ use serde::de::DeserializeOwned;
 use serde_json::{Map, Value};
 use std::io::Read;
 
+const DAGSTER_PIPES_CONTEXT_ENV_VAR: &str = "DAGSTER_PIPES_CONTEXT";
+const DAGSTER_PIPES_MESSAGES_ENV_VAR: &str = "DAGSTER_PIPES_MESSAGES";
+
 /// Load params passed from the orchestration process by the context injector and
 /// message reader. These params are used to respectively bootstrap the
 /// [`PipesContextLoader`] and [`PipesMessageWriter`].
@@ -16,22 +19,6 @@ pub trait PipesParamsLoader {
     /// Load params passed by the orchestration-side message reader.
     fn load_message_params(&self) -> Map<String, Value>;
 }
-
-// translation of
-// https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L354-L367
-fn decode_env_var<T>(param: &str) -> T
-where
-    T: DeserializeOwned,
-{
-    let zlib_compressed_slice = BASE64_STANDARD.decode(param).unwrap();
-    let mut decoder = ZlibDecoder::new(&zlib_compressed_slice[..]);
-    let mut json_str = String::new();
-    decoder.read_to_string(&mut json_str).unwrap();
-    serde_json::from_str(&json_str).unwrap()
-}
-
-const DAGSTER_PIPES_CONTEXT_ENV_VAR: &str = "DAGSTER_PIPES_CONTEXT";
-const DAGSTER_PIPES_MESSAGES_ENV_VAR: &str = "DAGSTER_PIPES_MESSAGES";
 
 #[derive(Debug, Default)]
 pub struct PipesEnvVarParamsLoader;
@@ -56,4 +43,17 @@ impl PipesParamsLoader for PipesEnvVarParamsLoader {
         let param = std::env::var(DAGSTER_PIPES_MESSAGES_ENV_VAR).unwrap();
         decode_env_var(&param)
     }
+}
+
+// translation of
+// https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L354-L367
+fn decode_env_var<T>(param: &str) -> T
+where
+    T: DeserializeOwned,
+{
+    let zlib_compressed_slice = BASE64_STANDARD.decode(param).unwrap();
+    let mut decoder = ZlibDecoder::new(&zlib_compressed_slice[..]);
+    let mut json_str = String::new();
+    decoder.read_to_string(&mut json_str).unwrap();
+    serde_json::from_str(&json_str).unwrap()
 }
