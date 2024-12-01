@@ -40,6 +40,21 @@ struct PipesMessage {
     params: Option<HashMap<String, serde_json::Value>>,
 }
 
+#[derive(Serialize)]
+pub enum AssetCheckSeverity {
+    Warn,
+    Error,
+}
+
+impl std::fmt::Display for AssetCheckSeverity {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match *self {
+            Self::Warn => write!(f, "WARN"),
+            Self::Error => write!(f, "ERROR"),
+        }
+    }
+}
+
 // partial translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L859-L871
 #[derive(Debug)]
@@ -52,7 +67,7 @@ impl PipesContext {
         let params: HashMap<String, serde_json::Value> = HashMap::from([
             ("asset_key".to_string(), json!(asset_key)),
             ("metadata".to_string(), metadata),
-            ("data_version".to_string(), json!(null)),  // TODO - support data versions
+            ("data_version".to_string(), json!(null)), // TODO - support data versions
         ]);
 
         let msg = PipesMessage {
@@ -68,13 +83,14 @@ impl PipesContext {
         check_name: &str,
         passed: bool,
         asset_key: &str,
+        severity: AssetCheckSeverity,
         metadata: serde_json::Value,
     ) {
         let params: HashMap<String, serde_json::Value> = HashMap::from([
             ("asset_key".to_string(), json!(asset_key)),
             ("check_name".to_string(), json!(check_name)),
             ("passed".to_string(), json!(passed)),
-            ("severity".to_string(), json!("ERROR")), // hardcode for now
+            ("severity".to_string(), json!(severity.to_string())),
             ("metadata".to_string(), metadata),
         ]);
 
