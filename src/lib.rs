@@ -4,7 +4,9 @@ use std::fs::OpenOptions;
 use std::io::prelude::*;
 use std::io::Write;
 
+use base64::prelude::*;
 use flate2::read::ZlibDecoder;
+use serde::Serialize;
 use serde::{de, Deserialize};
 use serde_json::json;
 
@@ -18,12 +20,18 @@ fn decode_env_var<T>(param: &str) -> T
 where
     T: de::DeserializeOwned,
 {
-    let zlib_compressed_slice = base64::decode(param).unwrap();
+    let zlib_compressed_slice = BASE64_STANDARD.decode(param).unwrap();
     let mut decoder = ZlibDecoder::new(&zlib_compressed_slice[..]);
     let mut json_str = String::new();
     decoder.read_to_string(&mut json_str).unwrap();
-    let value: T = serde_json::from_str(&json_str).unwrap();
-    return value;
+    serde_json::from_str(&json_str).unwrap()
+}
+
+#[derive(Serialize)]
+#[serde(rename_all = "UPPERCASE")]
+pub enum AssetCheckSeverity {
+    Warn,
+    Error,
 }
 
 // partial translation of
@@ -33,6 +41,7 @@ pub struct PipesContext {
     data: PipesContextData,
     writer: PipesFileMessageWriter,
 }
+
 impl PipesContext {
     pub fn report_asset_materialization(&mut self, asset_key: &str, metadata: serde_json::Value) {
         let params: HashMap<String, Option<serde_json::Value>> = HashMap::from([
@@ -54,13 +63,14 @@ impl PipesContext {
         check_name: &str,
         passed: bool,
         asset_key: &str,
+        severity: AssetCheckSeverity,
         metadata: serde_json::Value,
     ) {
         let params: HashMap<String, Option<serde_json::Value>> = HashMap::from([
             ("asset_key".to_string(), Some(json!(asset_key))),
             ("check_name".to_string(), Some(json!(check_name))),
             ("passed".to_string(), Some(json!(passed))),
-            ("severity".to_string(), Some(json!("ERROR"))), // hardcode for now
+            ("severity".to_string(), Some(json!(severity))),
             ("metadata".to_string(), Some(metadata)),
         ]);
 
@@ -80,12 +90,8 @@ struct PipesFileMessageWriter {
 impl PipesFileMessageWriter {
     fn write_message(&mut self, message: PipesMessage) {
         let serialized_msg = serde_json::to_string(&message).unwrap();
-        let mut file = OpenOptions::new()
-            .write(true)
-            .append(true)
-            .open(&self.path)
-            .unwrap();
-        writeln!(file, "{}", serialized_msg);
+        let mut file = OpenOptions::new().append(true).open(&self.path).unwrap();
+        writeln!(file, "{}", serialized_msg).unwrap();
 
         // TODO - optional `stderr` based writing
         //eprintln!("{}", serialized_msg);
@@ -124,8 +130,8 @@ pub fn open_dagster_pipes() -> PipesContext {
     //    panic!("only stderr supported for dagster pipes messages")
     //}
 
-    return PipesContext {
+    PipesContext {
         data: context_data,
         writer: PipesFileMessageWriter { path },
-    };
+    }
 }
