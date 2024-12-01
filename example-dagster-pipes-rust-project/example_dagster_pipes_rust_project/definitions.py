@@ -6,6 +6,12 @@ import dagster as dg
 @dg.asset(
     group_name="pipes",
     kinds={"rust"},
+    check_specs=[
+        dg.AssetCheckSpec(
+            name="example_rust_subprocess_check",
+            asset="example_rust_subprocess_asset",
+        )
+    ],
 )
 def example_rust_subprocess_asset(
     context: dg.AssetExecutionContext, pipes_subprocess_client: dg.PipesSubprocessClient
