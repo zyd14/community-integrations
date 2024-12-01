@@ -68,3 +68,16 @@ defs = dg.Definitions(
     },
 )
 ```
+
+
+## Contributing
+
+### Pipes Schema
+
+We use [jsonschema](https://json-schema.org/) to define the pipes protocol and [quicktype](https://quicktype.io/) to generate the Rust structs. Currently, the json schemas live in `jsonschema/pipes` but they should be hosted/defined in a centralized repository in the future.
+
+To generate the Rust structs, make sure to install quicktype with `npm install -g quicktype`. Then run:
+
+```bash
+./quicktype.sh
+```

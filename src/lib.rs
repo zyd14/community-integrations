@@ -5,8 +5,12 @@ use std::io::prelude::*;
 use std::io::Write;
 
 use flate2::read::ZlibDecoder;
-use serde::{de, Deserialize, Serialize};
+use serde::{de, Deserialize};
 use serde_json::json;
+
+mod types;
+
+use types::{Method, PipesContextData, PipesMessage};
 
 // translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L354-L367
@@ -23,24 +27,6 @@ where
 }
 
 // partial translation of
-// https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L94-L108
-#[derive(Debug, Deserialize)]
-struct PipesContextData {
-    asset_keys: Option<Vec<String>>,
-    run_id: String,
-    extras: HashMap<String, serde_json::Value>,
-}
-
-// translation of
-// https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L83-L88
-#[derive(Debug, Serialize)]
-struct PipesMessage {
-    __dagster_pipes_version: String,
-    method: String,
-    params: Option<HashMap<String, serde_json::Value>>,
-}
-
-// partial translation of
 // https://github.com/dagster-io/dagster/blob/258d9ca0db/python_modules/dagster-pipes/dagster_pipes/__init__.py#L859-L871
 #[derive(Debug)]
 pub struct PipesContext {
@@ -49,15 +35,15 @@ pub struct PipesContext {
 }
 impl PipesContext {
     pub fn report_asset_materialization(&mut self, asset_key: &str, metadata: serde_json::Value) {
-        let params: HashMap<String, serde_json::Value> = HashMap::from([
-            ("asset_key".to_string(), json!(asset_key)),
-            ("metadata".to_string(), metadata),
-            ("data_version".to_string(), json!(null)),  // TODO - support data versions
+        let params: HashMap<String, Option<serde_json::Value>> = HashMap::from([
+            ("asset_key".to_string(), Some(json!(asset_key))),
+            ("metadata".to_string(), Some(metadata)),
+            ("data_version".to_string(), None), // TODO - support data versions
         ]);
 
         let msg = PipesMessage {
-            __dagster_pipes_version: "0.1".to_string(),
-            method: "report_asset_materialization".to_string(),
+            dagster_pipes_version: "0.1".to_string(),
+            method: Method::ReportAssetMaterialization,
             params: Some(params),
         };
         self.writer.write_message(msg);
@@ -70,17 +56,17 @@ impl PipesContext {
         asset_key: &str,
         metadata: serde_json::Value,
     ) {
-        let params: HashMap<String, serde_json::Value> = HashMap::from([
-            ("asset_key".to_string(), json!(asset_key)),
-            ("check_name".to_string(), json!(check_name)),
-            ("passed".to_string(), json!(passed)),
-            ("severity".to_string(), json!("ERROR")), // hardcode for now
-            ("metadata".to_string(), metadata),
+        let params: HashMap<String, Option<serde_json::Value>> = HashMap::from([
+            ("asset_key".to_string(), Some(json!(asset_key))),
+            ("check_name".to_string(), Some(json!(check_name))),
+            ("passed".to_string(), Some(json!(passed))),
+            ("severity".to_string(), Some(json!("ERROR"))), // hardcode for now
+            ("metadata".to_string(), Some(metadata)),
         ]);
 
         let msg = PipesMessage {
-            __dagster_pipes_version: "0.1".to_string(),
-            method: "report_asset_check".to_string(),
+            dagster_pipes_version: "0.1".to_string(),
+            method: Method::ReportAssetCheck,
             params: Some(params),
         };
         self.writer.write_message(msg);
