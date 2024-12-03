@@ -7,6 +7,7 @@ use std::io::Write;
 
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use serde_json::Value;
 
 use crate::context_loader::PipesContextLoader;
 use crate::context_loader::PipesDefaultContextLoader;
@@ -125,7 +126,11 @@ pub fn open_dagster_pipes() -> PipesContext {
     let context_params = params_loader.load_context_params();
     let message_params = params_loader.load_message_params();
 
-    let path = "path".to_string(); // Placeholder variable until MessageWriter is implemented
+    // TODO: Refactor into MessageWriter impl
+    let path = match &message_params["path"] {
+        Value::String(string) => string.clone(),
+        _ => panic!("Expected message \"path\" in bootstrap payload"),
+    };
 
     //if stdio != "stderr" {
     //    panic!("only stderr supported for dagster pipes messages")
