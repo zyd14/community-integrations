@@ -7,11 +7,11 @@ For example, the `dagster-contrib-modal` integration has a workflow defined at `
 Releases are triggered by creating a git tag of the pattern `<integration-name>-X.X.X`. For example:
 
 ```sh
-git tag dagster_modal-0.1.3
+git tag dagster_contrib_modal-0.0.2
 ```
 
 ```sh
-git push origin dagster_modal-0.1.3
+git push origin dagster_contrib_modal-0.0.2
 ```
 
 Where the tag must match the prefix of the files generated in the `dist/` folder:
