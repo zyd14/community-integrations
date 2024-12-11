@@ -1,6 +1,7 @@
 package pipes;
 
 import pipes.logger.PipesLogger;
+import pipes.utils.MetadataBuilder;
 import types.*;
 import pipes.data.*;
 import pipes.loaders.PipesContextLoader;
@@ -222,6 +223,14 @@ public class PipesContext {
     }
 
     public void reportAssetMaterialization(
+        final Object metadataMapping,
+        final String dataVersion,
+        final String assetKey
+    ) throws DagsterPipesException {
+        reportAssetMaterialization(MetadataBuilder.buildFrom(metadataMapping), dataVersion, assetKey);
+    }
+
+    public void reportAssetMaterialization(
         final Map<String, PipesMetadata> pipesMetadata,
         final String dataVersion,
         final String assetKey
@@ -243,11 +252,43 @@ public class PipesContext {
     public void reportAssetCheck(
         String checkName,
         boolean passed,
+        Object metadataMapping,
+        String assetKey
+    ) throws DagsterPipesException {
+        reportAssetCheck(
+            checkName, passed, PipesAssetCheckSeverity.ERROR,
+            MetadataBuilder.buildFrom(metadataMapping), assetKey
+        );
+    }
+
+    public void reportAssetCheck(
+        String checkName,
+        boolean passed,
         Map<String, PipesMetadata> pipesMetadata,
         String assetKey
     ) throws DagsterPipesException {
         reportAssetCheck(
             checkName, passed, PipesAssetCheckSeverity.ERROR, pipesMetadata, assetKey
+        );
+    }
+
+    public void reportAssetCheck(
+        final String checkName,
+        final boolean passed,
+        final PipesAssetCheckSeverity severity,
+        Object metadataMapping,
+        final String assetKey
+    ) throws DagsterPipesException {
+        System.out.println("was: " + checkName + " " + passed + " " + assetKey);
+        assertNotNull(checkName, Method.REPORT_ASSET_CHECK, "checkName");
+        final String actualAssetKey = resolveOptionallyPassedAssetKey(assetKey, Method.REPORT_ASSET_CHECK);
+        System.out.println("resolved:" + actualAssetKey);
+        this.writeMessage(
+            Method.REPORT_ASSET_CHECK,
+            this.createMap(
+                actualAssetKey, checkName, passed, severity,
+                MetadataBuilder.buildFrom(metadataMapping)
+            )
         );
     }
 
