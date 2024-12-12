@@ -15,3 +15,6 @@ thiserror = "2.0.3"
 [dev-dependencies]
 rstest = { version = "0.23.0", default-features = false }
 tempfile = "3.14.0"
+
+[workspace]
+members = ["example-dagster-pipes-rust-project/rust_processing_jobs"]
