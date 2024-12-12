@@ -4,6 +4,7 @@
 
 ### Added
 - (pull/25) Use `cargo nextest` for GitHub CI jobs
+- (pull/22) Added `Default` implementation for `PipesContextData`
 - (pull/20) Added `FileChannel`, `StreamChannel`, `BufferedStreamChannel` implementing `MessageWriterChannel`
 - (pull/20) Added a simplified `PipesDefaultMessageWriter` implementing `MessageWriter`
 - (pull/20) Defined `MessageWriter` and the associated `MessageWriterChannel` traits
