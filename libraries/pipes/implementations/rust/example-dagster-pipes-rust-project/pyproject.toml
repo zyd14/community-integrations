@@ -1,0 +1,28 @@
+[project]
+name = "example_dagster_pipes_rust_project"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.9,<3.13"
+dependencies = [
+    "dagster",
+    "dagster-cloud",
+]
+
+[project.optional-dependencies]
+dev = [
+    "dagster-webserver", 
+    "pytest",
+    "ruff",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.dagster]
+module_name = "example_dagster_pipes_rust_project.definitions"
+project_name = "example_dagster_pipes_rust_project"
+
+[tool.setuptools.packages.find]
+exclude=["example_dagster_pipes_rust_project_tests"]

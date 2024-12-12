@@ -1,0 +1,38 @@
+{
+  "title": "PipesMetadataValue",
+  "type": "object",
+  "properties": {
+    "type": {
+      "enum": [
+        "__infer__",
+        "text",
+        "url",
+        "path",
+        "notebook",
+        "json",
+        "md",
+        "float",
+        "int",
+        "bool",
+        "dagster_run",
+        "asset",
+        "null",
+        "job",
+        "timestamp"
+      ]
+    },
+    "raw_value": {
+      "type": [
+        "integer",
+        "number",
+        "string",
+        "object",
+        "array",
+        "boolean",
+        "null"
+      ],
+      "additionalProperties": true,
+      "items": {}
+    }
+  }
+}
