@@ -25,6 +25,8 @@ pub use crate::writer::message_writer::{DefaultWriter, MessageWriter};
 pub use crate::writer::message_writer_channel::{DefaultChannel, FileChannel};
 use crate::writer::message_writer_channel::{MessageWriteError, MessageWriterChannel};
 
+const DAGSTER_PIPES_VERSION: &str = "0.1";
+
 #[derive(Serialize)]
 #[serde(rename_all = "UPPERCASE")]
 pub enum AssetCheckSeverity {
@@ -63,11 +65,7 @@ where
     ) -> Result<Self, MessageWriteError> {
         let mut message_channel = message_writer.open(message_params);
         let opened_payload = get_opened_payload(message_writer);
-        let opened_message = PipesMessage {
-            dagster_pipes_version: "0.1".to_string(), // TODO: Convert to `const`
-            method: Method::Opened,
-            params: Some(opened_payload),
-        };
+        let opened_message = PipesMessage::new(Method::Opened, Some(opened_payload));
         message_channel.write_message(opened_message)?;
 
         Ok(Self {
@@ -273,13 +271,12 @@ mod tests {
         assert_eq!(
             serde_json::from_str::<PipesMessage>(&fs::read_to_string(file.path()).unwrap())
                 .unwrap(),
-            PipesMessage {
-                dagster_pipes_version: "0.1".to_string(),
-                method: Method::ReportAssetMaterialization,
-                params: Some(HashMap::from([
-                    ("asset_key".to_string(), Some(json!("asset1"))),
+            PipesMessage::new(
+                Method::ReportAssetMaterialization,
+                Some(HashMap::from([
+                    ("asset_key", Some(json!("asset1"))),
                     (
-                        "metadata".to_string(),
+                        "metadata",
                         Some(json!({
                             "text": {
                                 "raw_value": "hello",
@@ -343,9 +340,9 @@ mod tests {
                             }
                         }))
                     ),
-                    ("data_version".to_string(), None),
+                    ("data_version", None),
                 ])),
-            }
+            )
         );
     }
 }
