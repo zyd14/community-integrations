@@ -1,0 +1,14 @@
+name: build-and-release-dagster-contrib-anthropic
+
+on:
+  push:
+    tags:
+      - 'dagster_contrib_anthropic-*.*.*'
+
+jobs:
+  build-and-release-dagster-contrib-anthropic:
+    uses: ./.github/workflows/template-release.yml
+    with:
+      library_name: dagster-contrib-anthropic
+      working_directory: ./libraries/dagster-contrib-anthropic
+    secrets: inherit
