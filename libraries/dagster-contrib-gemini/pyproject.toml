@@ -1,6 +1,6 @@
 [project]
 name = "dagster-contrib-gemini"
-version = "0.0.1"
+version = "0.0.2"
 description = "Dagster integration with Gemini"
 readme = "README.md"
 requires-python = ">=3.9"
