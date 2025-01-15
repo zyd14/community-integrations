@@ -1,0 +1,12 @@
+name: quality-check-dagster-contrib-gemini
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'libraries/dagster-contrib-gemini/**'
+
+jobs:
+  check:
+    uses: ./.github/workflows/template-quality-check.yml
+    with:
+      working_directory: ./libraries/dagster-contrib-gemini

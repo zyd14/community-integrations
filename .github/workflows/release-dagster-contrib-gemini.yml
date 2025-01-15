@@ -1,0 +1,14 @@
+name: build-and-release-dagster-contrib-gemini
+
+on:
+  push:
+    tags:
+      - 'dagster_contrib_gemini-*.*.*'
+
+jobs:
+  build-and-release-dagster-contrib-gemini:
+    uses: ./.github/workflows/template-release.yml
+    with:
+      library_name: dagster-contrib-gemini
+      working_directory: ./libraries/dagster-contrib-gemini
+    secrets: inherit
