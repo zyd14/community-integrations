@@ -1,5 +1,5 @@
 [project]
-name = "dagster_contrib_weaviate"
+name = "dagster-contrib-weaviate"
 version = "0.0.1"
 description = "Dagster integration with Weaviate"
 readme = "README.md"
