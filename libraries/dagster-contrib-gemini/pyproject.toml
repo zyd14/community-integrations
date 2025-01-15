@@ -1,5 +1,5 @@
 [project]
-name = "dagster_contrib_gemini"
+name = "dagster-contrib-gemini"
 version = "0.0.1"
 description = "Dagster integration with Gemini"
 readme = "README.md"
