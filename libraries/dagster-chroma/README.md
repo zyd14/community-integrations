@@ -10,7 +10,7 @@ environment manager (We recommend [uv](https://github.com/astral-sh/uv)).
 
 ```
 source .venv/bin/activate
-uv pip install dagster_chroma
+uv pip install dagster-chroma
 ```
 
 ## Example Usage (Local Chroma Instance)

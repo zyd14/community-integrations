@@ -7,7 +7,7 @@ A Dagster library for triggering syncs in Hightouch.
 To install the library, use pip alongside your existing Dagster environment.
 
 ```bash
-pip install dagster_hightouch
+pip install dagster-hightouch
 ```
 
 ### Configuration

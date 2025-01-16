@@ -9,7 +9,7 @@ environment manager (We recommend [uv](https://github.com/astral-sh/uv)).
 
 ```
 source .venv/bin/activate
-uv pip install dagster_gemini
+uv pip install dagster-gemini
 ```
 
 ## Example Usage
