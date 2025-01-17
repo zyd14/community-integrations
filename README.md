@@ -14,6 +14,22 @@ See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 See [RELEASES.md](RELEASES.md).
 
+## Community
+
+We are very appreciative of the work from our community members, and would like to recognize:
+
+* [GingerYouth](https://github.com/GingerYouth) for their work on the Java Pipes implementation
+* [marijncv](https://github.com/marijncv) for their work on the Rust Pipes implementation
+* [christeefy](https://github.com/christeefy) for their work on the Rust Pipes implementation
+
+Thank you all!
+
+<div align="center">
+  <a align="center" href="https://github.com/dagster-io/community-integrations/graphs/contributors">
+    <img align="center" src="https://contrib.rocks/image?repo=dagster-io/community-integrations" />
+  </a>
+</div>
+
 ---
 
 <div align="center">
