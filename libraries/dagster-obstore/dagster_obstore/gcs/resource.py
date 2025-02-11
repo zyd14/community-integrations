@@ -5,7 +5,7 @@ from obstore.store import GCSStore
 from pydantic import Field
 
 if TYPE_CHECKING:
-    from obstore.store import GCSConfig, RetryConfig
+    from obstore.store import GCSConfigInput, RetryConfig
 
 
 class GCSObjectStore(ConfigurableResource):
@@ -35,14 +35,14 @@ class GCSObjectStore(ConfigurableResource):
         retry_config: Optional["RetryConfig"] = None,
     ) -> GCSStore:
         """Creates an GCS object store."""
-        config: GCSConfig = {
+        config: GCSConfigInput = {
             "service_account": self.service_account,
             "service_account_key": self.service_account_key,
         }
         if self.service_account_path:
             config["service_account_path"] = self.service_account_path
 
-        return GCSStore.from_env(
+        return GCSStore(
             bucket=bucket,
             config=config,
             client_options={
