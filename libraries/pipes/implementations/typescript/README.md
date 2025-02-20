@@ -1,4 +1,4 @@
-# dagster-pipes-typescript
+# `@dagster-io/dagster-pipes`
 
 A pipes implementation for the typescript programming language.
 
