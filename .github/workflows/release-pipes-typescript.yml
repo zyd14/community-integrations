@@ -9,6 +9,9 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    defaults:
+        run:
+          working-directory: ./libraries/pipes/implementations/typescript/
 
     steps:
       - uses: actions/checkout@v4
