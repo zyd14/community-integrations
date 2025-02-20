@@ -1,0 +1,25 @@
+[project]
+name = "typescript_pipes_testing"
+version = "0.1.0"
+description = "Configuration for testing the typescript pipes implementation"
+readme = "README.md"
+requires-python = ">=3.10,<3.13" # for compatibility with the pipes golden tests
+dependencies = [
+    "dagster",
+    "dagster-cloud",
+    "dagster-webserver",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "dagster_pipes_tests",
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv.sources]
+dagster_pipes_tests = { path = "../../tests/dagster-pipes-tests", editable = true }
