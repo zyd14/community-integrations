@@ -22,15 +22,15 @@ jobs:
 
       - name: Sync dependencies
         working-directory: ./libraries/dagster-iceberg
-        run: uv sync --group dev --group docs --all-extras
+        run: uv sync --all-extras --group docs
 
       - name: Ruff check
         working-directory: ./libraries/dagster-iceberg
-        run: uv run ruff check .
+        run: uv run ruff check
 
       - name: Ruff format
         working-directory: ./libraries/dagster-iceberg
-        run: uv run ruff format .
+        run: uv run ruff format --check
 
       - name: Pyright
         working-directory: ./libraries/dagster-iceberg
@@ -38,4 +38,4 @@ jobs:
 
       - name: Pytest
         working-directory: ./libraries/dagster-iceberg
-        run: uv run pytest tests
+        run: uv run pytest

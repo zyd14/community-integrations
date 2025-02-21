@@ -1,15 +1,15 @@
 install:
-	uv sync --all-extras --group dev --group docs
+	uv sync --all-extras --group docs
 
 build:
 	uv build
 
 test:
-	uv run pytest tests
+	uv run pytest
 
-lint:
-	uv run ruff check --fix .
-	uv run ruff format .
+ruff:
+	uv run ruff check --fix
+	uv run ruff format
 
 check:
 	uv run pyright
