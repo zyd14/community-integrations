@@ -2,9 +2,11 @@
 
 ---
 
-## 0.1.6 - UNRELEASED
+## 0.1.7 - UNRELEASED
 
-### Added
+-
+
+## 0.1.6
 
 - Add support for new Hex API parameters in `run_project`: `dry_run`, `update_published_results`, and `view_id`
 - Improve deprecation notice for `update_cache` to clarify both alternatives
@@ -12,28 +14,20 @@
 
 ## 0.1.5
 
-### Added
-
 - Hex project asset definition with `build_hex_asset` function using the project_id
 - Update to hex resource to sync with new hex API updates to deprecate `update_cache` and add `use_cached_sql` instead.
 
 ## 0.1.4
 
-### Added
-
 - Mark `hex_resource` with deprecation warning and recommendation to use `HexResource`
 - `HexResource` has been refactored from instantiation a `hex_resource` function to a `ConfigurableResource`
 
-## [0.1.3] - 2023-06-20
-
-### Added
+## 0.1.3
 
 - Support for notifications
 
-## [0.1.2] - 2022-11-07
-
-### Fixed
+## 0.1.2
 
 - Don't sell input parameters when they are null
 
-## [0.1.0] - Initial Release
+## 0.1.0
