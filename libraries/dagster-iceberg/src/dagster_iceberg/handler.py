@@ -14,17 +14,16 @@ from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
 from pyiceberg.table.snapshots import Snapshot
-from .utils import preview
 
-from dagster_iceberg._utils import table_writer
+from dagster_iceberg._utils import preview, table_writer
 
 U = TypeVar("U")
 
 ArrowTypes = Union[pa.Table, pa.RecordBatchReader]
 
 
-@preview
 @public
+@preview
 class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
     @abstractmethod
     def to_data_frame(
