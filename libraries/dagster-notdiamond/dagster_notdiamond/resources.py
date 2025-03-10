@@ -4,17 +4,24 @@ from importlib import metadata
 from typing import Generator, Optional, Union
 from weakref import WeakKeyDictionary
 
+from packaging import version
 from dagster import (
+    __version__,
     AssetExecutionContext,
     AssetKey,
     ConfigurableResource,
     InitResourceContext,
     OpExecutionContext,
 )
-from dagster._annotations import preview, public
+from dagster._annotations import public
 from dagster._core.errors import DagsterInvariantViolationError
 from notdiamond import NotDiamond
 from pydantic import Field, PrivateAttr
+
+if version.parse(__version__) >= version.parse("1.10.0"):
+    from dagster._annotations import preview
+else:
+    from dagster._annotations import experimental as preview
 
 
 class ApiEndpointClassesEnum(Enum):

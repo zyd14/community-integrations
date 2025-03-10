@@ -4,7 +4,7 @@ from contextlib import contextmanager  # noqa
 from typing import Dict, Iterator, Optional, Sequence, Type, TypedDict, cast  # noqa
 
 from dagster import OutputContext
-from dagster._annotations import preview, public
+from dagster._annotations import public
 from dagster._config.pythonic_config import ConfigurableIOManagerFactory
 from dagster._core.definitions.time_window_partitions import TimeWindow
 from dagster._core.storage.db_io_manager import (
@@ -19,6 +19,7 @@ from pyiceberg.catalog import Catalog, load_catalog
 
 from dagster_iceberg._db_io_manager import CustomDbIOManager
 from dagster_iceberg.config import IcebergCatalogConfig  # noqa
+from dagster_iceberg._utils import preview
 
 
 class PartitionSpecUpdateMode(enum.Enum):

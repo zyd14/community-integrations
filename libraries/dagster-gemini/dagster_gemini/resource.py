@@ -1,13 +1,15 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from functools import wraps
+from packaging import version
 from typing import Optional, Generator, Union
 from weakref import WeakKeyDictionary
 
 from pydantic import Field, PrivateAttr
 
-from dagster._annotations import preview, public
+from dagster._annotations import public
 from dagster import (
+    __version__,
     ConfigurableResource,
     DagsterInvariantViolationError,
     InitResourceContext,
@@ -18,6 +20,11 @@ from dagster import (
 
 import google.generativeai as genai
 from google.generativeai import GenerativeModel
+
+if version.parse(__version__) >= version.parse("1.10.0"):
+    from dagster._annotations import preview
+else:
+    from dagster._annotations import experimental as preview
 
 context_to_counters = WeakKeyDictionary()
 

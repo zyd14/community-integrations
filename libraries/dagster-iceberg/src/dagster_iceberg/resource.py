@@ -1,12 +1,13 @@
 from typing import Optional
 
 from dagster import ConfigurableResource
-from dagster._annotations import preview, public
+from dagster._annotations import public
 from pydantic import Field
 from pyiceberg.catalog import load_catalog
 from pyiceberg.table import Table
 
 from dagster_iceberg.config import IcebergCatalogConfig
+from dagster_iceberg._utils import preview
 
 
 @public

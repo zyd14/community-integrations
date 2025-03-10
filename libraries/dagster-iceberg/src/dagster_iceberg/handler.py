@@ -2,12 +2,19 @@ from abc import abstractmethod
 from typing import Generic, TypeVar, Union, cast
 
 import pyarrow as pa
-from dagster import InputContext, MetadataValue, OutputContext, TableColumn, TableSchema
-from dagster._annotations import preview, public
+from dagster import (
+    InputContext,
+    MetadataValue,
+    OutputContext,
+    TableColumn,
+    TableSchema,
+)
+from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
 from pyiceberg.table.snapshots import Snapshot
+from .utils import preview
 
 from dagster_iceberg._utils import table_writer
 
