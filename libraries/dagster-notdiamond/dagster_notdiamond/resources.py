@@ -4,17 +4,24 @@ from importlib import metadata
 from typing import Generator, Optional, Union
 from weakref import WeakKeyDictionary
 
+from packaging import version
 from dagster import (
+    __version__,
     AssetExecutionContext,
     AssetKey,
     ConfigurableResource,
     InitResourceContext,
     OpExecutionContext,
 )
-from dagster._annotations import experimental, public
+from dagster._annotations import public
 from dagster._core.errors import DagsterInvariantViolationError
 from notdiamond import NotDiamond
 from pydantic import Field, PrivateAttr
+
+if version.parse(__version__) >= version.parse("1.10.0"):
+    from dagster._annotations import preview  # pyright: ignore[reportAttributeAccessIssue]
+else:
+    from dagster._annotations import experimental as preview  # pyright: ignore[reportAttributeAccessIssue]
 
 
 class ApiEndpointClassesEnum(Enum):
@@ -27,7 +34,7 @@ context_to_counters = WeakKeyDictionary()
 
 
 @public
-@experimental
+@preview
 class NotDiamondResource(ConfigurableResource):
     """This resource is wrapper over the
     `notdiamond` library <https://github.com/notdiamond/notdiamond-python>.

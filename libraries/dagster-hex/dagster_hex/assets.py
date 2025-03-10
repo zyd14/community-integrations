@@ -1,4 +1,6 @@
+from packaging import version
 from dagster import (
+    __version__,
     AssetsDefinition,
     asset,
     AssetExecutionContext,
@@ -6,12 +8,16 @@ from dagster import (
     MetadataValue,
     Output,
 )
-from dagster._annotations import experimental
 from typing import Optional
 from .resources import HexResource
 
+if version.parse(__version__) >= version.parse("1.10.0"):
+    from dagster._annotations import preview  # pyright: ignore[reportAttributeAccessIssue]
+else:
+    from dagster._annotations import experimental as preview  # pyright: ignore[reportAttributeAccessIssue]
 
-@experimental
+
+@preview
 def build_hex_asset(
     project_id: str,
     resource: HexResource,

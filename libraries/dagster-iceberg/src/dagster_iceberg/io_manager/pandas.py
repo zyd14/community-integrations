@@ -6,12 +6,13 @@ except ImportError as e:
     raise ImportError("Please install dagster-iceberg with the 'pandas' extra.") from e
 import pyarrow as pa
 from dagster import InputContext
-from dagster._annotations import experimental, public
+from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg.catalog import Catalog
 
 from dagster_iceberg import io_manager as _io_manager
 from dagster_iceberg.io_manager.arrow import _IcebergPyArrowTypeHandler
+from dagster_iceberg._utils import preview
 
 
 class _IcebergPandasTypeHandler(_IcebergPyArrowTypeHandler):
@@ -39,7 +40,7 @@ class _IcebergPandasTypeHandler(_IcebergPyArrowTypeHandler):
         return [pd.DataFrame]
 
 
-@experimental
+@preview
 @public
 class IcebergPandasIOManager(_io_manager.IcebergIOManager):
     """An IO manager definition that reads inputs from and writes outputs to Iceberg tables using Pandas.

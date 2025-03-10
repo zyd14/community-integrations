@@ -1,14 +1,14 @@
 from typing import Sequence, Tuple, Type, Union
 
 import pyarrow as pa
-from dagster._annotations import experimental, public
+from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg import expressions as E
 from pyiceberg import table as ibt
 
 from dagster_iceberg import handler as _handler
 from dagster_iceberg import io_manager as _io_manager
-from dagster_iceberg._utils import DagsterPartitionToIcebergExpressionMapper
+from dagster_iceberg._utils import DagsterPartitionToIcebergExpressionMapper, preview
 
 ArrowTypes = Union[pa.Table, pa.RecordBatchReader]
 
@@ -49,7 +49,7 @@ class _IcebergPyArrowTypeHandler(_handler.IcebergBaseTypeHandler[ArrowTypes]):
         return (pa.Table, pa.RecordBatchReader)
 
 
-@experimental
+@preview
 @public
 class IcebergPyarrowIOManager(_io_manager.IcebergIOManager):
     """An IO manager definition that reads inputs from and writes outputs to Iceberg tables using PyArrow.

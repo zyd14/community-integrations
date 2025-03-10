@@ -1,13 +1,15 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from functools import wraps
+from packaging import version
 from typing import Optional, Generator, Union
 from weakref import WeakKeyDictionary
 
 from pydantic import Field, PrivateAttr
 
-from dagster._annotations import experimental, public
+from dagster._annotations import public
 from dagster import (
+    __version__,
     ConfigurableResource,
     DagsterInvariantViolationError,
     InitResourceContext,
@@ -18,6 +20,11 @@ from dagster import (
 
 import google.generativeai as genai
 from google.generativeai import GenerativeModel
+
+if version.parse(__version__) >= version.parse("1.10.0"):
+    from dagster._annotations import preview  # pyright: ignore[reportAttributeAccessIssue]
+else:
+    from dagster._annotations import experimental as preview  # pyright: ignore[reportAttributeAccessIssue]
 
 context_to_counters = WeakKeyDictionary()
 
@@ -70,7 +77,7 @@ def with_usage_metadata(
 
 
 @public
-@experimental
+@preview
 class GeminiResource(ConfigurableResource):
     """This resource is a wrapper over the `Gemini library<https://github.com/google-gemini/generative-ai-python>`.
 
