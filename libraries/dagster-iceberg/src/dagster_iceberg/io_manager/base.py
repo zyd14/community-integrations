@@ -4,7 +4,7 @@ from contextlib import contextmanager  # noqa
 from typing import Dict, Iterator, Optional, Sequence, Type, TypedDict, cast  # noqa
 
 from dagster import OutputContext
-from dagster._annotations import experimental, public
+from dagster._annotations import preview, public
 from dagster._config.pythonic_config import ConfigurableIOManagerFactory
 from dagster._core.definitions.time_window_partitions import TimeWindow
 from dagster._core.storage.db_io_manager import (
@@ -49,7 +49,7 @@ class _IcebergTableIOManagerResourceConfig(TypedDict):
     schema_update_mode: SchemaUpdateMode
 
 
-@experimental
+@preview
 class IcebergDbClient(DbClient):
     @staticmethod
     def delete_table_slice(
@@ -94,7 +94,7 @@ class IcebergDbClient(DbClient):
             )
 
 
-@experimental
+@preview
 @public
 class IcebergIOManager(ConfigurableIOManagerFactory):
     """Base class for an IO manager definition that reads inputs from and writes outputs to Iceberg tables.

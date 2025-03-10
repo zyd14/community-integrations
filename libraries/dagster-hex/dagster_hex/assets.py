@@ -6,12 +6,12 @@ from dagster import (
     MetadataValue,
     Output,
 )
-from dagster._annotations import experimental
+from dagster._annotations import preview
 from typing import Optional
 from .resources import HexResource
 
 
-@experimental
+@preview
 def build_hex_asset(
     project_id: str,
     resource: HexResource,

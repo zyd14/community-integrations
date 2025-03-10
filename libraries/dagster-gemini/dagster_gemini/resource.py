@@ -6,7 +6,7 @@ from weakref import WeakKeyDictionary
 
 from pydantic import Field, PrivateAttr
 
-from dagster._annotations import experimental, public
+from dagster._annotations import preview, public
 from dagster import (
     ConfigurableResource,
     DagsterInvariantViolationError,
@@ -70,7 +70,7 @@ def with_usage_metadata(
 
 
 @public
-@experimental
+@preview
 class GeminiResource(ConfigurableResource):
     """This resource is a wrapper over the `Gemini library<https://github.com/google-gemini/generative-ai-python>`.
 

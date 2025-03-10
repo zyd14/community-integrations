@@ -6,7 +6,7 @@ from weakref import WeakKeyDictionary
 
 from pydantic import Field, PrivateAttr
 
-from dagster._annotations import experimental, public
+from dagster._annotations import preview, public
 from dagster import (
     ConfigurableResource,
     DagsterInvariantViolationError,
@@ -68,7 +68,7 @@ def with_usage_metadata(
 
 
 @public
-@experimental
+@preview
 class AnthropicResource(ConfigurableResource):
     """This resource is a wrapper over the `Anthropic library<https://github.com/anthropics/anthropic-sdk-python>`.
 

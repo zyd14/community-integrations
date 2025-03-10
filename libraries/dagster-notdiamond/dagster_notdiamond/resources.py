@@ -11,7 +11,7 @@ from dagster import (
     InitResourceContext,
     OpExecutionContext,
 )
-from dagster._annotations import experimental, public
+from dagster._annotations import preview, public
 from dagster._core.errors import DagsterInvariantViolationError
 from notdiamond import NotDiamond
 from pydantic import Field, PrivateAttr
@@ -27,7 +27,7 @@ context_to_counters = WeakKeyDictionary()
 
 
 @public
-@experimental
+@preview
 class NotDiamondResource(ConfigurableResource):
     """This resource is wrapper over the
     `notdiamond` library <https://github.com/notdiamond/notdiamond-python>.
