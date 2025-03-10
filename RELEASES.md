@@ -6,23 +6,7 @@ For example, the `dagster-modal` integration has a workflow defined at `.github/
 
 Releases are triggered by creating a git tag of the pattern `<integration-name>-X.X.X`. For example:
 
-```sh
-git tag dagster_modal-0.0.2
-```
-
-```sh
-git push origin dagster_modal-0.0.2
-```
-
-Where the tag must match the prefix of the files generated in the `dist/` folder:
-
-```sh
-ls libraries/dagster-modal/dist/
-
-total 16
--rw-r--r--@ 2.0K Oct 23 14:06 dagster_modal-0.0.1-py3-none-any.whl
--rw-r--r--@ 1.6K Oct 23 14:06 dagster_modal-0.0.1.tar.gz
-```
+    $ ./release.sh dagster-anthropic 0.0.2
 
 ### Variables
 
