@@ -26,4 +26,4 @@ packages = ["dagster_evidence", "dagster_evidence.lib"]
 version = {attr = "dagster_evidence.__version__"}
 
 [project.entry-points]
-"dagster_dg.plugin" = { dagster_evidence = "dagster_evidence"}
+"dagster_dg.library" = { dagster_evidence = "dagster_evidence"}
