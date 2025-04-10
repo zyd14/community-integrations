@@ -7,6 +7,6 @@ from dagster_teradata.resources import (
     teradata_resource as teradata_resource,
 )
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 DagsterLibraryRegistry.register("dagster-teradata", __version__)
