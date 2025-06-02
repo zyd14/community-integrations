@@ -9,20 +9,20 @@ public class PipesBufferedStreamMessageWriterChannel implements PipesMessageWrit
     private final List<PipesMessage> buffer;
     private final BufferedWriter stream;
 
-    public PipesBufferedStreamMessageWriterChannel(OutputStream outputStream) {
+    public PipesBufferedStreamMessageWriterChannel(final OutputStream outputStream) {
         this.buffer = new ArrayList<>();
         this.stream = new BufferedWriter(new OutputStreamWriter(outputStream));
     }
 
     @Override
-    public void writeMessage(PipesMessage message) {
+    public void writeMessage(final PipesMessage message) {
         buffer.add(message);
     }
 
     public void flush() throws IOException {
         try {
             // Iterate through buffered messages and write each one to the stream
-            for (PipesMessage message : buffer) {
+            for (final PipesMessage message : buffer) {
                 stream.write(message.toString());
                 stream.newLine();
             }

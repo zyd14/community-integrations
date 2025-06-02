@@ -18,9 +18,10 @@ public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessage
     private final AtomicInteger counter;
     private final Lock lock;
     private Thread uploadThread;
+    @SuppressWarnings("PMD.AvoidUsingVolatile")
     private volatile boolean shouldClose;
 
-    public PipesBlobStoreMessageWriterChannel(float interval) {
+    public PipesBlobStoreMessageWriterChannel(final float interval) {
         this.interval = interval;
         this.buffer = new ConcurrentLinkedQueue<>();
         this.counter = new AtomicInteger(1);
@@ -31,7 +32,7 @@ public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessage
      * Adds a message to the buffer.
      */
     @Override
-    public void writeMessage(PipesMessage message) {
+    public void writeMessage(final PipesMessage message) {
         buffer.add(message);
     }
 
@@ -39,7 +40,7 @@ public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessage
      * Flushes messages from the buffer.
      */
     private Queue<PipesMessage> flushMessages() {
-        Queue<PipesMessage> messages = new ConcurrentLinkedQueue<>();
+        final Queue<PipesMessage> messages = new ConcurrentLinkedQueue<>();
         lock.lock();
         try {
             while (!buffer.isEmpty()) {
@@ -80,17 +81,18 @@ public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessage
      */
     private void uploadLoop() {
         LocalDateTime startOrLastUpload = LocalDateTime.now();
-        StringWriter payload;
+        final StringWriter payload = new StringWriter();
 
         while (!shouldClose) {
             try {
-                LocalDateTime now = LocalDateTime.now();
-                boolean shouldUpload = Duration.between(startOrLastUpload, now).getSeconds() > interval;
+                final LocalDateTime now = LocalDateTime.now();
+                final boolean shouldUpload = Duration.between(startOrLastUpload, now).getSeconds() > interval;
 
                 if (!buffer.isEmpty() && shouldUpload) {
-                    Queue<PipesMessage> messagesToUpload = flushMessages();
-                    payload = new StringWriter();
-                    for (PipesMessage message: messagesToUpload) {
+                    final Queue<PipesMessage> messagesToUpload = flushMessages();
+                    payload.getBuffer().setLength(0);
+
+                    for (final PipesMessage message : messagesToUpload) {
                         payload.write(message.toString());
                         payload.write("\n");
                     }
@@ -105,9 +107,10 @@ public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessage
                 Thread.currentThread().interrupt();
             }
         }
-        Queue<PipesMessage> messagesToUpload = flushMessages();
-        payload = new StringWriter();
-        for (PipesMessage message: messagesToUpload) {
+
+        final Queue<PipesMessage> messagesToUpload = flushMessages();
+        payload.getBuffer().setLength(0);
+        for (final PipesMessage message : messagesToUpload) {
             payload.write(message.toString());
             payload.write("\n");
         }
