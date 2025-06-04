@@ -1,5 +1,6 @@
 package io.dagster.pipes.writers;
 
+import io.dagster.pipes.DagsterPipesException;
 import java.io.StringWriter;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -8,8 +9,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import io.dagster.pipes.DagsterPipesException;
 
 public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessageWriterChannel {
 
@@ -21,6 +20,7 @@ public abstract class PipesBlobStoreMessageWriterChannel implements PipesMessage
     @SuppressWarnings("PMD.AvoidUsingVolatile")
     private volatile boolean shouldClose;
 
+    /** Constructor. */
     public PipesBlobStoreMessageWriterChannel(final float interval) {
         this.interval = interval;
         this.buffer = new ConcurrentLinkedQueue<>();
