@@ -16,7 +16,7 @@ java {
 }
 
 mavenPublishing {
-    coordinates("io.dagster", "pipes", "1.1.0")
+    coordinates("io.dagster", "pipes", "1.1.1")
     signAllPublications()
 
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
