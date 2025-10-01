@@ -13,46 +13,49 @@ from pyiceberg.catalog import Catalog
 from dagster_iceberg._utils import io
 
 
-class TestTableWriter:
-    def run_test_write(
-        self,
-        dagster_run_id: str,
-        write_mode: io.WriteMode,
-        expected_length: int,
-        namespace: str,
-        catalog: Catalog,
-        data: pa.Table,
-        table_: str,
-        identifier_: str,
-    ):
-        io.table_writer(
-            table_slice=TableSlice(
-                table=table_, schema=namespace, partition_dimensions=[]
-            ),
-            data=data,
-            catalog=catalog,
-            schema_update_mode="update",
-            partition_spec_update_mode="update",
-            dagster_run_id=dagster_run_id,
-            write_mode=write_mode,
-        )
-        assert catalog.table_exists(identifier_)
-        table = catalog.load_table(identifier_)
-        assert (
-            table.current_snapshot().summary.additional_properties["dagster-run-id"]
-            == dagster_run_id
-        )
-        assert (
-            table.current_snapshot().summary.additional_properties["created-by"]
-            == "dagster"
-        )
-        assert len(table.scan().to_arrow().to_pydict()["value"]) == expected_length
-        return table
+def run_test_write(
+    dagster_run_id: str,
+    write_mode: io.WriteMode,
+    expected_length: int,
+    namespace: str,
+    catalog: Catalog,
+    data: pa.Table,
+    table_: str,
+    identifier_: str,
+    partition_dimensions: list[TablePartitionDimension] | None = None,
+):
+    if partition_dimensions is None:
+        partition_dimensions = []
+    io.table_writer(
+        table_slice=TableSlice(
+            table=table_, schema=namespace, partition_dimensions=partition_dimensions
+        ),
+        data=data,
+        catalog=catalog,
+        schema_update_mode="update",
+        partition_spec_update_mode="update",
+        dagster_run_id=dagster_run_id,
+        write_mode=write_mode,
+    )
+    assert catalog.table_exists(identifier_)
+    table = catalog.load_table(identifier_)
+    assert (
+        table.current_snapshot().summary.additional_properties["dagster-run-id"]
+        == dagster_run_id
+    )
+    assert (
+        table.current_snapshot().summary.additional_properties["created-by"]
+        == "dagster"
+    )
+    assert len(table.scan().to_arrow().to_pydict()["value"]) == expected_length
+    return table
 
+
+class TestTableWriter:
     def test_nominal_case(self, namespace: str, catalog: Catalog, data: pa.Table):
         table_ = "handler_data_table_writer"
         identifier_ = f"{namespace}.{table_}"
-        self.run_test_write(
+        run_test_write(
             dagster_run_id=str(uuid4()),
             write_mode=io.WriteMode.overwrite,
             expected_length=len(data),
@@ -63,13 +66,10 @@ class TestTableWriter:
             identifier_=identifier_,
         )
 
-    def test_table_writer_append_mode(
-        self, namespace: str, catalog: Catalog, data: pa.Table
-    ):
+    def test_append_mode(self, namespace: str, catalog: Catalog, data: pa.Table):
         table_ = "handler_data_table_writer_append_mode"
         identifier_ = f"{namespace}.{table_}"
-
-        self.run_test_write(
+        run_test_write(
             dagster_run_id=str(uuid4()),
             write_mode=io.WriteMode.overwrite,
             expected_length=len(data),
@@ -79,7 +79,7 @@ class TestTableWriter:
             table_=table_,
             identifier_=identifier_,
         )
-        self.run_test_write(
+        run_test_write(
             dagster_run_id=str(uuid4()),
             write_mode=io.WriteMode.append,
             expected_length=len(data) * 2,
@@ -90,12 +90,10 @@ class TestTableWriter:
             identifier_=identifier_,
         )
 
-    def test_table_writer_overwrite_mode(
-        self, namespace: str, catalog: Catalog, data: pa.Table
-    ):
+    def test_overwrite_mode(self, namespace: str, catalog: Catalog, data: pa.Table):
         table_ = "handler_data_table_writer_overwrite_mode"
         identifier_ = f"{namespace}.{table_}"
-        self.run_test_write(
+        run_test_write(
             dagster_run_id=str(uuid4()),
             write_mode=io.WriteMode.overwrite,
             expected_length=len(data),
@@ -105,7 +103,7 @@ class TestTableWriter:
             table_=table_,
             identifier_=identifier_,
         )
-        self.run_test_write(
+        run_test_write(
             dagster_run_id=str(uuid4()),
             write_mode=io.WriteMode.overwrite,
             expected_length=len(data),
@@ -118,41 +116,13 @@ class TestTableWriter:
 
 
 class TestTableWriterPartitioned:
-    def run_test_write(
-        self,
-        dagster_run_id: str,
-        write_mode: io.WriteMode,
-        expected_length: int,
-        namespace: str,
-        catalog: Catalog,
-        data: pa.Table,
-        table_: str,
-        identifier_: str,
-    ):
-        io.table_writer(
-            table_slice=TableSlice(
-                table=table_,
-                schema=namespace,
-                partition_dimensions=[
-                    TablePartitionDimension(
-                        "timestamp",
-                        TimeWindow(
-                            dt.datetime(2023, 1, 1, 0), dt.datetime(2023, 1, 1, 1)
-                        ),
-                    ),
-                ],
-            ),
-            data=data,
-            catalog=catalog,
-            schema_update_mode="update",
-            partition_spec_update_mode="update",
-            dagster_run_id=dagster_run_id,
-            write_mode=write_mode,
-        )
-        table = catalog.load_table(identifier_)
-        partition_field_names = [f.name for f in table.spec().fields]
-        assert partition_field_names == ["timestamp"]
-        assert len(table.scan().to_arrow().to_pydict()["value"]) == expected_length
+    def _partition_dimensions(self) -> list[TablePartitionDimension]:
+        return [
+            TablePartitionDimension(
+                "timestamp",
+                TimeWindow(dt.datetime(2023, 1, 1, 0), dt.datetime(2023, 1, 1, 1)),
+            )
+        ]
 
     def test_nominal_case(self, namespace: str, catalog: Catalog, data: pa.Table):
         table_ = "handler_data_table_writer_nominal_case"
@@ -161,7 +131,7 @@ class TestTableWriterPartitioned:
             (pc.field("timestamp") >= dt.datetime(2023, 1, 1, 0))
             & (pc.field("timestamp") < dt.datetime(2023, 1, 1, 1)),
         )
-        self.run_test_write(
+        run_test_write(
             dagster_run_id=str(uuid4()),
             write_mode=io.WriteMode.append,
             expected_length=60,
@@ -170,6 +140,7 @@ class TestTableWriterPartitioned:
             data=data,
             table_=table_,
             identifier_=identifier_,
+            partition_dimensions=self._partition_dimensions(),
         )
 
     def test_table_writer_partitioned_overwrite_mode(
@@ -182,7 +153,7 @@ class TestTableWriterPartitioned:
             & (pc.field("timestamp") < dt.datetime(2023, 1, 1, 1)),
         )
         for _ in range(2):
-            self.run_test_write(
+            run_test_write(
                 dagster_run_id=str(uuid4()),
                 write_mode=io.WriteMode.overwrite,
                 expected_length=60,
@@ -191,6 +162,7 @@ class TestTableWriterPartitioned:
                 data=data,
                 table_=table_,
                 identifier_=identifier_,
+                partition_dimensions=self._partition_dimensions(),
             )
 
     def test_table_writer_partitioned_append_mode(
@@ -203,7 +175,7 @@ class TestTableWriterPartitioned:
             & (pc.field("timestamp") < dt.datetime(2023, 1, 1, 1)),
         )
         for i in range(2):
-            self.run_test_write(
+            run_test_write(
                 dagster_run_id=str(uuid4()),
                 write_mode=io.WriteMode.append,
                 expected_length=60 * (i + 1),
@@ -212,6 +184,7 @@ class TestTableWriterPartitioned:
                 data=data,
                 table_=table_,
                 identifier_=identifier_,
+                partition_dimensions=self._partition_dimensions(),
             )
 
 
