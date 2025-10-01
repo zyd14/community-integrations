@@ -40,6 +40,35 @@ def test_table_writer(namespace: str, catalog: Catalog, data: pa.Table):
         == "dagster"
     )
 
+def test_table_writer_append_mode(namespace: str, catalog: Catalog, data: pa.Table):
+    table_ = "handler_data_table_writer_append_mode"
+    identifier_ = f"{namespace}.{table_}"
+    io.table_writer(
+        table_slice=TableSlice(table=table_, schema=namespace, partition_dimensions=[]),
+        data=data,
+        catalog=catalog,
+        schema_update_mode="update",
+        partition_spec_update_mode="update",
+        dagster_run_id="hfkghdgsh467374828",
+        write_mode="overwrite",
+    )
+    assert catalog.table_exists(identifier_)
+    table = catalog.load_table(identifier_)
+    assert table.current_snapshot().summary.additional_properties["dagster-run-id"] == "hfkghdgsh467374828"
+    assert table.current_snapshot().summary.additional_properties["created-by"] == "dagster"
+    assert len(table.scan().to_arrow().to_pydict()["value"]) == len(data)
+
+    io.table_writer(
+        table_slice=TableSlice(table=table_, schema=namespace, partition_dimensions=[]),
+        data=data,
+        catalog=catalog,
+        schema_update_mode="update",
+        partition_spec_update_mode="update",
+        dagster_run_id="hfkghdgsh467374828",
+        write_mode="append",
+    )
+    assert len(table.scan().to_arrow().to_pydict()["value"]) == len(data) * 2
+
 
 def test_table_writer_partitioned(namespace: str, catalog: Catalog, data: pa.Table):
     # Works similar to # https://docs.dagster.io/integrations/deltalake/reference#storing-multi-partitioned-assets
