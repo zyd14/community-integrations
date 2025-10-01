@@ -5,6 +5,7 @@
 ### Added
 
 - Spark I/O manager.
+- Support for append mode in Iceberg I/O manager.
 
 ### Changed
 
