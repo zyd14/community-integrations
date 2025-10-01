@@ -102,9 +102,7 @@ def daily_partitioned(context: AssetExecutionContext) -> pl.DataFrame:
     key_prefix=["my_schema"],
     partitions_def=DailyPartitionsDefinition(start_date="2022-01-01"),
     config_schema={"value": str},
-    metadata={"partition_expr": "partition",
-              "write_mode": "overwrite"
-              },
+    metadata={"partition_expr": "partition", "write_mode": "overwrite"},
 )
 def daily_partitioned_append_mode(context: AssetExecutionContext) -> pl.DataFrame:
     partition = datetime.datetime.strptime(context.partition_key, "%Y-%m-%d").date()
