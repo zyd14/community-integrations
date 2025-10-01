@@ -1,3 +1,4 @@
+import contextlib
 import datetime as dt
 import random
 import shutil
@@ -118,7 +119,10 @@ def namespace_name() -> str:
 
 @pytest.fixture(autouse=True)
 def namespace(catalog: Catalog, namespace_name: str) -> str:
-    catalog.create_namespace(namespace_name)
+    from sqlalchemy.exc import IntegrityError
+
+    with contextlib.suppress(IntegrityError):
+        catalog.create_namespace(namespace_name)
     return namespace_name
 
 

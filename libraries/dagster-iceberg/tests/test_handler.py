@@ -140,4 +140,3 @@ def test_handle_output_metadata_passing(
     )
     assert "table_columns" in context.output_metadata
     assert "snapshot_id" in context.output_metadata
-

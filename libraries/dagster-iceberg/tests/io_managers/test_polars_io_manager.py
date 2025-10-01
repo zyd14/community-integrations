@@ -177,6 +177,7 @@ def multi_partitioned(context: AssetExecutionContext) -> pl.DataFrame:
         },
     )
 
+
 @asset(
     key_prefix=["my_schema"],
     partitions_def=MultiPartitionsDefinition(
@@ -210,6 +211,7 @@ def multi_partitioned_append_mode(context: AssetExecutionContext) -> pl.DataFram
             "category_this": [category],
         },
     )
+
 
 @asset(
     key_prefix=["my_schema"],
@@ -247,7 +249,6 @@ def multi_partitioned_overwrite_mode(context: AssetExecutionContext) -> pl.DataF
 
 
 class TestIcebergIOManager:
-
     def test_output_input_loading_for_asset_dependencies_with_overwrite(
         self,
         asset_b_df_table_identifier: str,
@@ -307,13 +308,19 @@ class TestIcebergIOManager:
     ):
         resource_defs = {"io_manager": io_manager}
 
-        for date, value in [("2022-01-01", "1"), ("2022-01-01", "2"), ("2022-01-01", "3")]:
+        for date, value in [
+            ("2022-01-01", "1"),
+            ("2022-01-01", "2"),
+            ("2022-01-01", "3"),
+        ]:
             res = materialize(
                 [daily_partitioned],
                 partition_key=date,
                 resources=resource_defs,
                 run_config={
-                    "ops": {"my_schema__daily_partitioned": {"config": {"value": value}}},
+                    "ops": {
+                        "my_schema__daily_partitioned": {"config": {"value": value}}
+                    },
                 },
             )
             assert res.success
@@ -378,7 +385,9 @@ class TestIcebergIOManager:
                 partition_key=date,
                 resources=resource_defs,
                 run_config={
-                    "ops": {"my_schema__hourly_partitioned": {"config": {"value": "1"}}},
+                    "ops": {
+                        "my_schema__hourly_partitioned": {"config": {"value": "1"}}
+                    },
                 },
             )
             assert res.success
@@ -439,23 +448,28 @@ class TestIcebergIOManager:
         self,
         asset_multi_partitioned_append_mode_table_identifier: str,
         catalog: Catalog,
-        io_manager: PolarsIcebergIOManager):
+        io_manager: PolarsIcebergIOManager,
+    ):
         resource_defs = {"io_manager": io_manager}
         keys = [
-                "a|2022-01-01",
-                "b|2022-01-01",
-                "c|2022-01-01",
-                "a|2022-01-01",
-                "b|2022-01-01",
-                "c|2022-01-01",
-            ]
+            "a|2022-01-01",
+            "b|2022-01-01",
+            "c|2022-01-01",
+            "a|2022-01-01",
+            "b|2022-01-01",
+            "c|2022-01-01",
+        ]
         for key in keys:
             res = materialize(
                 [multi_partitioned_append_mode],
                 partition_key=key,
                 resources=resource_defs,
                 run_config={
-                    "ops": {"my_schema__multi_partitioned_append_mode": {"config": {"value": "1"}}},
+                    "ops": {
+                        "my_schema__multi_partitioned_append_mode": {
+                            "config": {"value": "1"}
+                        }
+                    },
                 },
             )
             assert res.success
@@ -469,7 +483,9 @@ class TestIcebergIOManager:
 
         date_this_values = set(out_df["date_this"].to_pylist())
         assert len(date_this_values) == 1
-        expected_date_this_values = {datetime.datetime.strptime(k.split("|")[1], "%Y-%m-%d").date() for k in keys}
+        expected_date_this_values = {
+            datetime.datetime.strptime(k.split("|")[1], "%Y-%m-%d").date() for k in keys
+        }
         assert date_this_values == expected_date_this_values
 
         category_this_values = set(out_df["category_this"].to_pylist())
@@ -481,28 +497,35 @@ class TestIcebergIOManager:
         self,
         asset_multi_partitioned_overwrite_mode_table_identifier: str,
         catalog: Catalog,
-        io_manager: PolarsIcebergIOManager):
+        io_manager: PolarsIcebergIOManager,
+    ):
         resource_defs = {"io_manager": io_manager}
         keys = [
-                "a|2022-01-01",
-                "b|2022-01-01",
-                "c|2022-01-01",
-                "a|2022-01-01",
-                "b|2022-01-01",
-                "c|2022-01-01",
-            ]
+            "a|2022-01-01",
+            "b|2022-01-01",
+            "c|2022-01-01",
+            "a|2022-01-01",
+            "b|2022-01-01",
+            "c|2022-01-01",
+        ]
         for key in keys:
             res = materialize(
                 [multi_partitioned_overwrite_mode],
                 partition_key=key,
                 resources=resource_defs,
                 run_config={
-                    "ops": {"my_schema__multi_partitioned_overwrite_mode": {"config": {"value": "1"}}},
+                    "ops": {
+                        "my_schema__multi_partitioned_overwrite_mode": {
+                            "config": {"value": "1"}
+                        }
+                    },
                 },
             )
             assert res.success
 
-        table = catalog.load_table(asset_multi_partitioned_overwrite_mode_table_identifier)
+        table = catalog.load_table(
+            asset_multi_partitioned_overwrite_mode_table_identifier
+        )
         assert len(table.spec().fields) == 2
         assert [f.name for f in table.spec().fields] == ["category_this", "date_this"]
 
@@ -511,7 +534,9 @@ class TestIcebergIOManager:
 
         date_this_values = set(out_df["date_this"].to_pylist())
         assert len(date_this_values) == 1
-        expected_date_this_values = {datetime.datetime.strptime(k.split("|")[1], "%Y-%m-%d").date() for k in keys}
+        expected_date_this_values = {
+            datetime.datetime.strptime(k.split("|")[1], "%Y-%m-%d").date() for k in keys
+        }
         assert date_this_values == expected_date_this_values
 
         category_this_values = set(out_df["category_this"].to_pylist())
