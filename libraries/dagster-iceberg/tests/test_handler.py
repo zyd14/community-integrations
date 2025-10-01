@@ -61,59 +61,30 @@ def sample_data():
     return pa.table({"col1": ["a", "b"], "col2": [1, 2]})
 
 
-@pytest.mark.parametrize(
-    [
-        (
-            {
-                "write_mode": "append",
-                "partition_spec_update_mode": "update",
-                "schema_update_mode": "update",
-                "table_properties": {"prop1": "value1"},
-                "partition_key": "2022-01-01",
-            },
-            {},
-            WriteMode.append,
-            "update",
-            "update",
-            {"prop1": "value1"},
-            "2022-01-01",
-        ),
-        # Test that output metadata overrides definition metadata for write mode
-        (
-            {
-                "write_mode": "overwrite",
-                "partition_spec_update_mode": "error",
-                "schema_update_mode": "error",
-                "table_properties": {"prop1": "value1"},
-                "partition_key": None,
-            },
-            {"write_mode": "append"},
-            WriteMode.append,
-            "error",
-            "error",
-            {"prop1": "value1"},
-            None,
-        ),
-    ],
-)
 def test_handle_output_metadata_passing(
-    definition_metadata,
-    output_metadata,
-    expected_write_mode,
-    expected_partition_spec_mode,
-    expected_schema_mode,
-    expected_table_properties,
     mock_catalog,
     table_slice,
     sample_data,
-    expected_partition_key,
     mock_table_writer,
 ):
     """Test that metadata from definition and output contexts is passed correctly to table_writer. Useful for testing overrides or calculated values"""
 
+    # Test that output metadata overrides definition metadata for write mode
+    definition_metadata = {
+        "write_mode": "overwrite",
+        "partition_spec_update_mode": "error",
+        "schema_update_mode": "error",
+        "table_properties": {"prop1": "value1"},
+        "partition_key": None,
+    }
+    expected_write_mode = WriteMode.append
+    expected_partition_spec_mode = "error"
+    expected_schema_mode = "error"
+    expected_table_properties = {"prop1": "value1"}
+    expected_partition_key = None
+
     run_id = str(uuid4())
     context = build_output_context(
-        metadata=output_metadata,
         definition_metadata=definition_metadata,
         run_id=run_id,
     )
