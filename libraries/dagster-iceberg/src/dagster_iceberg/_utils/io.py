@@ -294,6 +294,8 @@ class IcebergTableAppenderWithRetry(IcebergOperationWithRetry):
         data: pa.Table,
         snapshot_properties: dict[str, str] | None = None,
     ):
+        if snapshot_properties is None:
+            snapshot_properties = {}
         self.logger.debug("Appending to table")
         self.table.append(
             df=data,
