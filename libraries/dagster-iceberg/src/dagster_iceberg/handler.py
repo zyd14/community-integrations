@@ -93,8 +93,12 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
     def _get_write_mode(self, context: OutputContext) -> WriteMode:
         try:
-            definition_write_mode = WriteMode(context.definition_metadata.get("write_mode", DEFAULT_WRITE_MODE))
-            return WriteMode(context.output_metadata.get("write_mode", definition_write_mode).value)
+            definition_write_mode = WriteMode(
+                context.definition_metadata.get("write_mode", DEFAULT_WRITE_MODE)
+            )
+            return WriteMode(
+                context.output_metadata.get("write_mode", definition_write_mode).value
+            )
         except ValueError as ve:
             error_msg = f"Invalid write mode: {context.output_metadata.get('write_mode')}. Valid modes are {[mode.value for mode in WriteMode]}"
             raise ValueError(error_msg) from ve
