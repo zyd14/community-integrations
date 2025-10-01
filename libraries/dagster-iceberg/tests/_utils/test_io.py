@@ -1,5 +1,6 @@
 import datetime as dt
 import pathlib as plb
+from uuid import uuid4
 
 import pyarrow as pa
 import pyarrow.compute as pc
@@ -40,34 +41,35 @@ def test_table_writer(namespace: str, catalog: Catalog, data: pa.Table):
         == "dagster"
     )
 
-def test_table_writer_append_mode(namespace: str, catalog: Catalog, data: pa.Table):
-    table_ = "handler_data_table_writer_append_mode"
-    identifier_ = f"{namespace}.{table_}"
-    io.table_writer(
-        table_slice=TableSlice(table=table_, schema=namespace, partition_dimensions=[]),
-        data=data,
-        catalog=catalog,
-        schema_update_mode="update",
-        partition_spec_update_mode="update",
-        dagster_run_id="hfkghdgsh467374828",
-        write_mode="overwrite",
-    )
-    assert catalog.table_exists(identifier_)
-    table = catalog.load_table(identifier_)
-    assert table.current_snapshot().summary.additional_properties["dagster-run-id"] == "hfkghdgsh467374828"
-    assert table.current_snapshot().summary.additional_properties["created-by"] == "dagster"
-    assert len(table.scan().to_arrow().to_pydict()["value"]) == len(data)
 
-    io.table_writer(
-        table_slice=TableSlice(table=table_, schema=namespace, partition_dimensions=[]),
-        data=data,
-        catalog=catalog,
-        schema_update_mode="update",
-        partition_spec_update_mode="update",
-        dagster_run_id="hfkghdgsh467374828",
-        write_mode="append",
-    )
-    assert len(table.scan().to_arrow().to_pydict()["value"]) == len(data) * 2
+def test_table_writer_append_mode(namespace: str, catalog: Catalog, data: pa.Table):
+    def run_test_write(dagster_run_id: str, write_mode: io.WriteMode, expected_length: int):
+        table_ = "handler_data_table_writer_append_mode"
+        identifier_ = f"{namespace}.{table_}"
+        io.table_writer(
+            table_slice=TableSlice(
+                table=table_, schema=namespace, partition_dimensions=[]
+            ),
+            data=data,
+            catalog=catalog,
+            dagster_run_id=dagster_run_id,
+            write_mode=write_mode,
+        )
+        assert catalog.table_exists(identifier_)
+        table = catalog.load_table(identifier_)
+        assert (
+            table.current_snapshot().summary.additional_properties["dagster-run-id"]
+            == dagster_run_id
+        )
+        assert (
+            table.current_snapshot().summary.additional_properties["created-by"]
+            == "dagster"
+        )
+        assert len(table.scan().to_arrow().to_pydict()["value"]) == expected_length
+        return table
+
+    run_test_write(str(uuid4()), io.WriteMode.overwrite, len(data))
+    run_test_write(str(uuid4()), io.WriteMode.append, len(data) * 2)
 
 
 def test_table_writer_partitioned(namespace: str, catalog: Catalog, data: pa.Table):
