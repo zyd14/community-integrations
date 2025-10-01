@@ -1,4 +1,5 @@
 from unittest.mock import Mock, patch
+from uuid import uuid4
 
 import pyarrow as pa
 import pytest
@@ -62,33 +63,36 @@ def sample_data():
 
 @pytest.mark.parametrize(
     [
-        # Test case 1: Definition metadata only
         (
             {
                 "write_mode": "append",
                 "partition_spec_update_mode": "update",
                 "schema_update_mode": "update",
                 "table_properties": {"prop1": "value1"},
+                "partition_key": "2022-01-01",
             },
             {},
             WriteMode.append,
             "update",
             "update",
             {"prop1": "value1"},
+            "2022-01-01",
         ),
-        # Test case 2: Output metadata overrides definition metadata
+        # Test that output metadata overrides definition metadata for write mode
         (
             {
                 "write_mode": "overwrite",
                 "partition_spec_update_mode": "error",
                 "schema_update_mode": "error",
                 "table_properties": {"prop1": "value1"},
+                "partition_key": None,
             },
             {"write_mode": "append"},
             WriteMode.append,
             "error",
             "error",
             {"prop1": "value1"},
+            None,
         ),
     ],
 )
@@ -102,21 +106,20 @@ def test_handle_output_metadata_passing(
     mock_catalog,
     table_slice,
     sample_data,
+    expected_partition_key,
     mock_table_writer,
 ):
-    """Test that metadata from definition and output contexts is passed correctly to table_writer."""
+    """Test that metadata from definition and output contexts is passed correctly to table_writer. Useful for testing overrides or calculated values"""
 
-    # Create output context with metadata
+    run_id = str(uuid4())
     context = build_output_context(
         metadata=output_metadata,
         definition_metadata=definition_metadata,
-        run_id="test_run_id",
+        run_id=run_id,
     )
 
-    # Create mock type handler
     handler = MockTypeHandler()
 
-    # Call handle_output
     handler.handle_output(
         context=context,
         table_slice=table_slice,
@@ -124,188 +127,17 @@ def test_handle_output_metadata_passing(
         connection=mock_catalog,
     )
 
-    # Verify table_writer was called
-    mock_table_writer.assert_called_once()
-
-    # Get the call arguments
-    call_args = mock_table_writer.call_args
-
-    # Verify all expected parameters were passed
-    assert call_args.kwargs["dagster_run_id"] == "test_run_id"
-    assert (
-        call_args.kwargs["dagster_partition_key"] is None
-    )  # No partitions in this test
-
-    # Verify metadata-derived parameters
-    assert call_args.kwargs["write_mode"] == expected_write_mode
-    assert (
-        call_args.kwargs["partition_spec_update_mode"] == expected_partition_spec_mode
+    mock_table_writer.assert_called_once_with(
+        table_slice=table_slice,
+        data=sample_data,
+        catalog=mock_catalog,
+        schema_update_mode=expected_schema_mode,
+        partition_spec_update_mode=expected_partition_spec_mode,
+        dagster_run_id=run_id,
+        dagster_partition_key=expected_partition_key,
+        table_properties=expected_table_properties,
+        write_mode=expected_write_mode,
     )
-    assert call_args.kwargs["schema_update_mode"] == expected_schema_mode
-    assert call_args.kwargs["table_properties"] == expected_table_properties
+    assert "table_columns" in context.output_metadata
+    assert "snapshot_id" in context.output_metadata
 
-
-class TestHandleOutput:
-    def test_append_output_metadata_overrides_definition_metadata(
-        self, mock_catalog, table_slice, sample_data, mock_table_writer
-    ):
-        """Test that output metadata takes priority over definition metadata."""
-
-        definition_metadata = {
-            "write_mode": "overwrite",
-            "partition_spec_update_mode": "error",
-            "schema_update_mode": "error",
-            "table_properties": {"def_prop": "def_value"},
-        }
-
-        output_metadata = {
-            "write_mode": "append",
-            "partition_spec_update_mode": "update",
-            "schema_update_mode": "update",
-            "table_properties": {"output_prop": "output_value"},
-        }
-
-        context = build_output_context(
-            metadata=output_metadata,
-            definition_metadata=definition_metadata,
-            run_id="test_run_id",
-        )
-
-        handler = MockTypeHandler()
-
-        with patch("dagster_iceberg._utils.io.table_writer") as mock_table_writer:
-            mock_table_writer.return_value = None
-
-            handler.handle_output(
-                context=context,
-                table_slice=table_slice,
-                obj=sample_data,
-                connection=mock_catalog,
-            )
-
-            # Verify output metadata takes priority
-            call_args = mock_table_writer.call_args
-            assert call_args.kwargs["write_mode"] == WriteMode.append
-            assert call_args.kwargs["partition_spec_update_mode"] == "update"
-            assert call_args.kwargs["schema_update_mode"] == "update"
-            assert call_args.kwargs["table_properties"] == {
-                "output_prop": "output_value"
-            }
-
-
-
-def test_handle_output_with_partitions(
-    mock_catalog,
-    sample_data,
-):
-    """Test handle_output with partitioned assets."""
-
-    # Create table slice with partitions
-    table_slice = TableSlice(
-        table="test_table",
-        schema="test_schema",
-        partition_dimensions=[],
-    )
-
-    # Create context with partition key
-    context = build_output_context(
-        metadata={"write_mode": "append"},
-        definition_metadata={"partition_spec_update_mode": "update"},
-        run_id="test_run_id",
-        partition_key="2022-01-01",
-    )
-
-    # Mock has_asset_partitions to return True
-    context.has_asset_partitions = True
-
-    handler = MockTypeHandler()
-
-    with patch("dagster_iceberg._utils.io.table_writer") as mock_table_writer:
-        mock_table_writer.return_value = None
-
-        handler.handle_output(
-            context=context,
-            table_slice=table_slice,
-            obj=sample_data,
-            connection=mock_catalog,
-        )
-
-        # Verify partition key was passed
-        call_args = mock_table_writer.call_args
-        assert call_args.kwargs["dagster_partition_key"] == "2022-01-01"
-
-
-def test_handle_output_metadata_priority(
-    mock_catalog,
-    table_slice,
-    sample_data,
-):
-    """Test that output metadata takes priority over definition metadata."""
-
-    definition_metadata = {
-        "write_mode": "overwrite",
-        "partition_spec_update_mode": "error",
-        "schema_update_mode": "error",
-        "table_properties": {"def_prop": "def_value"},
-    }
-
-    output_metadata = {
-        "write_mode": "append",
-        "partition_spec_update_mode": "update",
-        "schema_update_mode": "update",
-        "table_properties": {"output_prop": "output_value"},
-    }
-
-    context = build_output_context(
-        metadata=output_metadata,
-        definition_metadata=definition_metadata,
-        run_id="test_run_id",
-    )
-
-    handler = MockTypeHandler()
-
-    with patch("dagster_iceberg._utils.io.table_writer") as mock_table_writer:
-        mock_table_writer.return_value = None
-
-        handler.handle_output(
-            context=context,
-            table_slice=table_slice,
-            obj=sample_data,
-            connection=mock_catalog,
-        )
-
-        # Verify output metadata takes priority
-        call_args = mock_table_writer.call_args
-        assert call_args.kwargs["write_mode"] == WriteMode.append
-        assert call_args.kwargs["partition_spec_update_mode"] == "update"
-        assert call_args.kwargs["schema_update_mode"] == "update"
-        assert call_args.kwargs["table_properties"] == {"output_prop": "output_value"}
-
-
-def test_handle_output_adds_metadata_to_context(
-    mock_catalog,
-    table_slice,
-    sample_data,
-):
-    """Test that handle_output adds metadata to the context."""
-
-    context = build_output_context(
-        metadata={},
-        definition_metadata={},
-        run_id="test_run_id",
-    )
-
-    handler = MockTypeHandler()
-
-    with patch("dagster_iceberg._utils.io.table_writer"):
-        handler.handle_output(
-            context=context,
-            table_slice=table_slice,
-            obj=sample_data,
-            connection=mock_catalog,
-        )
-
-        # Verify that metadata was added to context
-        # This tests the second part of handle_output that adds metadata
-        assert "table_columns" in context.output_metadata
-        assert "snapshot_id" in context.output_metadata
