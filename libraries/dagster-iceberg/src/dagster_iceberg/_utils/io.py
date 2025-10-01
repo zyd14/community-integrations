@@ -147,25 +147,19 @@ def table_writer(
     else:
         row_filter = iceberg_table.ALWAYS_TRUE
 
+    snapshot_properties = base_properties | {"dagster-partition-key": dagster_partition_key} if dagster_partition_key is not None else base_properties
     if write_mode == WriteMode.append:
         append_to_table(
             table=table,
             data=data,
-            snapshot_properties=base_properties
-            | {"dagster-partition-key": dagster_partition_key}
-            if dagster_partition_key is not None
-            else base_properties,
+            snapshot_properties=snapshot_properties
         )
     elif write_mode == WriteMode.overwrite:
         overwrite_table(
             table=table,
             data=data,
             overwrite_filter=row_filter,
-            snapshot_properties=(
-                base_properties | {"dagster-partition-key": dagster_partition_key}
-                if dagster_partition_key is not None
-                else base_properties
-            ),
+            snapshot_properties=snapshot_properties,
         )
     else:
         raise ValueError(f"Unexpected write mode: {write_mode}")
