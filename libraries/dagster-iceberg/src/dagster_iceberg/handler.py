@@ -15,6 +15,7 @@ from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
 
 from dagster_iceberg._utils import preview, table_writer
+from dagster_iceberg._utils.io import DEFAULT_WRITE_MODE
 
 if TYPE_CHECKING:
     from pyiceberg.table.snapshots import Snapshot
@@ -55,6 +56,11 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         table_properties_usr = metadata.get("table_properties", {})
         partition_spec_update_mode = metadata.get("partition_spec_update_mode", "error")
         schema_update_mode = metadata.get("schema_update_mode", "error")
+        definition_write_mode = metadata.get("write_mode", DEFAULT_WRITE_MODE)
+
+        write_mode_with_output_override = context.output_metadata.get(
+            "write_mode", definition_write_mode
+        )
 
         table_writer(
             table_slice=table_slice,
@@ -67,6 +73,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
                 context.partition_key if context.has_asset_partitions else None
             ),
             table_properties=table_properties_usr,
+            write_mode=write_mode_with_output_override,
         )
 
         table_ = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
