@@ -1,6 +1,6 @@
 import logging
 from collections.abc import Sequence
-from enum import StrEnum
+from enum import Enum
 from typing import Final
 
 import pyarrow as pa
@@ -29,7 +29,7 @@ from dagster_iceberg.version import __version__ as dagster_iceberg_version
 logger = logging.getLogger("dagster_iceberg._utils.io")
 
 
-class WriteMode(StrEnum):
+class WriteMode(Enum):
     append = "append"
     overwrite = "overwrite"
 
