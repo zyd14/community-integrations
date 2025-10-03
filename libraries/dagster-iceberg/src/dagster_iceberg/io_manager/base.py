@@ -182,6 +182,7 @@ class IcebergIOManager(ConfigurableIOManagerFactory):
         Valid modes are ``append`` and ``overwrite``; default is ``overwrite``.
 
         .. code-block:: python
+
             # set at definition time via definition metadata
             @asset(
                 metadata={"write_mode": "append"}
