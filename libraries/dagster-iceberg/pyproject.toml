@@ -9,7 +9,7 @@ readme = "README.md"
 dependencies = [
   "dagster>=1.8.2",
   "pendulum>=3.0.0",
-  "pyiceberg[pyarrow]>=0.8",
+  "pyiceberg[pyarrow,sql-postgres]>=0.10.0",
   "tenacity>=8.5.0",
 ]
 classifiers = [

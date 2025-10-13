@@ -59,6 +59,8 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         write_mode_with_output_override = self._get_write_mode(context)
 
+        branch_config = context.resource_config.get("branch_config", None)
+
         table_writer(
             table_slice=table_slice,
             data=self.to_arrow(obj),
@@ -71,6 +73,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             ),
             table_properties=table_properties_usr,
             write_mode=write_mode_with_output_override,
+            branch_config=branch_config,
         )
 
         table_ = connection.load_table(f"{table_slice.schema}.{table_slice.table}")

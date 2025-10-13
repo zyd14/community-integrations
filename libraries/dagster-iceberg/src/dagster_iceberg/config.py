@@ -2,8 +2,23 @@ from typing import Any
 
 from dagster import Config
 from dagster._annotations import public
+from pydantic import Field
 
 from dagster_iceberg._utils import preview
+
+
+class IcebergBranchConfig(Config):
+    """Configuration for Iceberg Branches.
+
+    See the `Branches section <https://py.iceberg.apache.org/configuration/#branches>`_
+    for configuration options.
+    """
+    # TODO: verify the descriptions correctly reflect how these parameters work
+    ref_snapshot_id: int = Field(description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used.")
+    branch_name: str = Field(description="Name of the branch to use. If the specified branch does not yet exist it will be created.")
+    max_snapshot_age_ms: int = Field(description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted.")
+    min_snapshots_to_keep: int = Field(description="Minimum number of snapshots to keep. If the number of snapshots exceeds this number, the oldest snapshot will be deleted.")
+    max_ref_age_ms: int = Field(description="Maximum age of a reference in milliseconds. If a reference is older than this age, it will be deleted.")
 
 
 @public
@@ -45,3 +60,4 @@ class IcebergCatalogConfig(Config):
     """
 
     properties: dict[str, Any]
+    branch_config: IcebergBranchConfig | None = Field(default=None, description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.")
