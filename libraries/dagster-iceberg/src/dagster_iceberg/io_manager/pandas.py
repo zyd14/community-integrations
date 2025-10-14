@@ -28,10 +28,13 @@ class _PandasIcebergTypeHandler(_PyArrowIcebergTypeHandler):
         connection: Catalog,
     ) -> pd.DataFrame:
         """Loads the input using a DataFrame implmentation."""
+        table = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
+        snapshot = self._get_snapshot(context, table)
         tbl: pa.Table = self.to_data_frame(
-            table=connection.load_table(f"{table_slice.schema}.{table_slice.table}"),
+            table=table,
             table_slice=table_slice,
             target_type=pa.RecordBatchReader,
+            snapshot=snapshot,
         )
         return tbl.read_pandas()
 
