@@ -101,6 +101,7 @@ def table_writer(
             )
         partition_dimensions = table_slice.partition_dimensions
 
+    # TODO: may need to enable write.wap.enabled before doing branching stuff
     logger.debug("Partition dimensions: %s", partition_dimensions)
     if table_exists(catalog, table_path):
         logger.debug("Updating existing table")
@@ -187,17 +188,18 @@ def table_writer(
 
 def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: IcebergBranchConfig):
     """Creates a branch if it does not exist"""
-
-    if branch_config.branch_name not in table.refs():
-        logger.debug("Creating branch %s", branch_config.branch_name)
-        ref_snapshot_id = branch_config.ref_snapshot_id if branch_config.ref_snapshot_id is not None else table.current_snapshot().snapshot_id
-        table.manage_snapshots().create_branch(
-            snapshot_id=ref_snapshot_id,
-            branch_name=branch_config.branch_name,
-            max_snapshot_age_ms=branch_config.max_snapshot_age_ms,
-            min_snapshots_to_keep=branch_config.min_snapshots_to_keep,
-            max_ref_age_ms=branch_config.max_ref_age_ms,
-        ).commit()
+    # TODO: maybe we can defer committing until we actually write?
+    with table.manage_snapshots() as ms:
+        if branch_config.branch_name not in ms.refs():
+            logger.debug("Creating branch %s", branch_config.branch_name)
+            ref_snapshot_id = branch_config.ref_snapshot_id if branch_config.ref_snapshot_id is not None else table.current_snapshot().snapshot_id
+            ms.create_branch(
+                snapshot_id=ref_snapshot_id,
+                branch_name=branch_config.branch_name,
+                max_snapshot_age_ms=branch_config.max_snapshot_age_ms,
+                min_snapshots_to_keep=branch_config.min_snapshots_to_keep,
+                max_ref_age_ms=branch_config.max_ref_age_ms,
+            ).commit()
 
 
 def get_expression_row_filter(

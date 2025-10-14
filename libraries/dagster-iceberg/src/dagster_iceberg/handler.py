@@ -42,6 +42,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         table: ibt.Table,
         table_slice: TableSlice,
         target_type: type,
+        snapshot: "Snapshot | None" = None,
     ) -> U:
         pass
 
@@ -140,6 +141,15 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             error_msg = f"Invalid write mode: {context.output_metadata.get('write_mode')}. Valid modes are {[mode.value for mode in WriteMode]}"
             raise ValueError(error_msg) from ve
 
+    def _get_snapshot(self, context: OutputContext, table: ibt.Table) -> "Snapshot | None":
+        branch_config = context.resource_config.get("branch_config", None)
+        branch_name = branch_config.branch_name if branch_config is not None else None
+        snapshot = table.snapshot_by_name(branch_name) if branch_name is not None else None
+        table_path = ".".join(table.name())
+        if branch_name and snapshot is None:
+            raise ValueError(f"Branch {branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table")
+        return snapshot
+
     def load_input(
         self,
         context: InputContext,
@@ -147,8 +157,11 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         connection: Catalog,
     ) -> U:
         """Loads the input using a dataframe implementation"""
+        table = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
+
         return self.to_data_frame(
-            table=connection.load_table(f"{table_slice.schema}.{table_slice.table}"),
+            table=table,
             table_slice=table_slice,
             target_type=context.dagster_type.typing_type,
+            snapshot=self._get_snapshot(context, table),
         )
