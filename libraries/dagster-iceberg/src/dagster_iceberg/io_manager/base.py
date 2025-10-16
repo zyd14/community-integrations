@@ -19,7 +19,7 @@ from pydantic import Field
 from pyiceberg.catalog import Catalog, load_catalog
 
 from dagster_iceberg._db_io_manager import CustomDbIOManager
-from dagster_iceberg._utils import preview
+from dagster_iceberg._utils.preview import preview
 from dagster_iceberg.config import IcebergCatalogConfig
 
 

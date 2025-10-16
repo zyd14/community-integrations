@@ -11,7 +11,7 @@ from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg.catalog import Catalog
 
 from dagster_iceberg import io_manager as _io_manager
-from dagster_iceberg._utils import preview
+from dagster_iceberg._utils.preview import preview
 from dagster_iceberg.io_manager.arrow import _PyArrowIcebergTypeHandler
 
 

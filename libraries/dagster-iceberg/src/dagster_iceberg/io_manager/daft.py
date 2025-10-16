@@ -12,7 +12,8 @@ from pyiceberg import table as ibt
 
 from dagster_iceberg import handler as _handler
 from dagster_iceberg import io_manager as _io_manager
-from dagster_iceberg._utils import DagsterPartitionToDaftSqlPredicateMapper, preview
+from dagster_iceberg._utils.partitions import DagsterPartitionToDaftSqlPredicateMapper
+from dagster_iceberg._utils.preview import preview
 
 
 class _DaftIcebergTypeHandler(_handler.IcebergBaseTypeHandler[da.DataFrame]):

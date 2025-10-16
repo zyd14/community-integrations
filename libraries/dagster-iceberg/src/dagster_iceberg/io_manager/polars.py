@@ -13,7 +13,8 @@ from pyiceberg import table as ibt
 
 from dagster_iceberg import handler as _handler
 from dagster_iceberg import io_manager as _io_manager
-from dagster_iceberg._utils import DagsterPartitionToPolarsSqlPredicateMapper, preview
+from dagster_iceberg._utils.partitions import DagsterPartitionToPolarsSqlPredicateMapper
+from dagster_iceberg._utils.preview import preview
 
 PolarsTypes = Union[pl.LazyFrame, pl.DataFrame]  # noqa: UP007, avoid `autodoc` failure
 

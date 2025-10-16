@@ -14,8 +14,8 @@ from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
 
-from dagster_iceberg._utils import preview, table_writer
-from dagster_iceberg._utils.io import DEFAULT_WRITE_MODE, WriteMode
+from dagster_iceberg._utils.preview import preview
+from dagster_iceberg._utils.io import DEFAULT_WRITE_MODE, WriteMode, table_writer
 
 if TYPE_CHECKING:
     from pyiceberg.table.snapshots import Snapshot

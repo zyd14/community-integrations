@@ -4,7 +4,7 @@ from dagster import Config
 from dagster._annotations import public
 from pydantic import Field
 
-from dagster_iceberg._utils import preview
+from dagster_iceberg._utils.preview import preview
 
 
 class IcebergBranchConfig(Config):

@@ -9,7 +9,8 @@ from pyiceberg import table as ibt
 
 from dagster_iceberg import handler as _handler
 from dagster_iceberg import io_manager as _io_manager
-from dagster_iceberg._utils import DagsterPartitionToIcebergExpressionMapper, preview
+from dagster_iceberg._utils.partitions import DagsterPartitionToIcebergExpressionMapper
+from dagster_iceberg._utils.preview import preview
 
 ArrowTypes = Union[pa.Table, pa.RecordBatchReader]  # noqa: UP007, avoid Pyright failure
 

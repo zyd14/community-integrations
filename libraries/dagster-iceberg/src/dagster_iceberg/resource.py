@@ -4,7 +4,7 @@ from pydantic import Field
 from pyiceberg.catalog import load_catalog
 from pyiceberg.table import Table
 
-from dagster_iceberg._utils import preview
+from dagster_iceberg._utils.preview import preview
 from dagster_iceberg.config import IcebergCatalogConfig
 
 

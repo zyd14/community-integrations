@@ -26,7 +26,7 @@ from dagster._core.storage.db_io_manager import (
 )
 from pydantic import Field
 
-from dagster_iceberg._utils import preview
+from dagster_iceberg._utils.preview import preview
 
 try:
     from dagster._core.definitions.partitions.schedule_type import (  # type: ignore[reportMissingImports]
