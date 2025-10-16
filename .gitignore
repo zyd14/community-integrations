@@ -168,4 +168,8 @@ cython_debug/
 node_modules/
 /.idea
 
+# VSCode
 .vscode/
+
+# Local gitignore for dev folders
+.gitignore.local
