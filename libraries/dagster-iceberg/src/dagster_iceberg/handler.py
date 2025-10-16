@@ -43,7 +43,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         table: ibt.Table,
         table_slice: TableSlice,
         target_type: type,
-        snapshot: "Snapshot | None" = None,
+        snapshot_id: int | None = None,
     ) -> U:
         pass
 
@@ -206,10 +206,12 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
     ) -> U:
         """Loads the input using a dataframe implementation"""
         table = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
+        snapshot = self._get_snapshot(context, table)
+        snapshot_id = snapshot.snapshot_id if snapshot is not None else None
 
         return self.to_data_frame(
             table=table,
             table_slice=table_slice,
             target_type=context.dagster_type.typing_type,
-            snapshot=self._get_snapshot(context, table),
+            snapshot_id=snapshot_id,
         )

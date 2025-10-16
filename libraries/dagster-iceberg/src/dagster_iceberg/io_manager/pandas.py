@@ -30,11 +30,12 @@ class _PandasIcebergTypeHandler(_PyArrowIcebergTypeHandler):
         """Loads the input using a DataFrame implmentation."""
         table = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
         snapshot = self._get_snapshot(context, table)
+        snapshot_id = snapshot.snapshot_id if snapshot is not None else None
         tbl: pa.Table = self.to_data_frame(
             table=table,
             table_slice=table_slice,
             target_type=pa.RecordBatchReader,
-            snapshot=snapshot,
+            snapshot_id=snapshot_id,
         )
         return tbl.read_pandas()
 
