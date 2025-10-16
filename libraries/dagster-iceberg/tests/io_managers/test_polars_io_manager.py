@@ -32,8 +32,8 @@ def io_manager(
 
 
 @pytest.fixture
-def io_manager_factory() -> Callable[[str, str, dict[str, str]], PolarsIcebergIOManager]:
-    def _factory(catalog_name: str, namespace: str, iceberg_catalog_config: IcebergCatalogConfig) -> PolarsIcebergIOManager:
+def io_manager_factory(catalog_name: str, namespace: str) -> Callable[[str, str, dict[str, str]], PolarsIcebergIOManager]:
+    def _factory(iceberg_catalog_config: IcebergCatalogConfig) -> PolarsIcebergIOManager:
         return PolarsIcebergIOManager(
             name=catalog_name,
             config=iceberg_catalog_config,
@@ -575,12 +575,15 @@ class TestIcebergIOManagerBranching:
         namespace: str,
     ):
         iceberg_catalog_config = IcebergCatalogConfig(properties={}, branch_config=IcebergBranchConfig(branch_name="test"))
-        io_manager = io_manager_factory(catalog_name="test", namespace=namespace, iceberg_catalog_config=iceberg_catalog_config)
+        io_manager = io_manager_factory(iceberg_catalog_config=iceberg_catalog_config)
 
         resource_defs = {"io_manager": io_manager}
 
-        res = materialize([b_df, b_plus_one], resources=resource_defs)
+        res = materialize([b_df], resources=resource_defs)
         assert res.success
 
         table = catalog.load_table(asset_b_df_table_identifier)
+        refs = table.refs()
+        assert len(refs) == 1
+        assert refs[0].branch_name == "test"
         assert table.current_snapshot().branch_name == "test"
