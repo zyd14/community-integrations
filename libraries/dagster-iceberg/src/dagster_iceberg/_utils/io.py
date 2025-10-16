@@ -181,12 +181,18 @@ def table_writer(
     else:
         row_filter = iceberg_table.ALWAYS_TRUE
 
+    if branch_config is not None:
+        create_branch_if_not_exists(table=table, branch_config=branch_config)
+        branch_name = branch_config.branch_name
+    else:
+        branch_name = None
+
     snapshot_properties = (
         base_properties | {"dagster-partition-key": dagster_partition_key}
         if dagster_partition_key is not None
         else base_properties
     )
-    branch_name = branch_config.branch_name if branch_config is not None else None
+
     if write_mode == WriteMode.append:
         append_to_table(
             table=table,
