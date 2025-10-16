@@ -521,7 +521,7 @@ requires-dist = [
     { name = "pandas", marker = "extra == 'pandas'", specifier = ">=2.0.0" },
     { name = "pendulum", specifier = ">=3.0.0" },
     { name = "polars", marker = "extra == 'polars'", specifier = ">=1.0.0" },
-    { name = "pyiceberg", extras = ["pyarrow", "sql-postgres"], specifier = "==0.10.0" },
+    { name = "pyiceberg", extras = ["pyarrow", "sql-postgres"], specifier = ">=0.10.0" },
     { name = "pyspark", extras = ["connect"], marker = "extra == 'spark'", specifier = "~=3.4" },
     { name = "tenacity", specifier = ">=8.5.0" },
 ]
