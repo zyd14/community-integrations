@@ -1,3 +1,4 @@
+from collections.abc import Callable
 import datetime
 
 import polars as pl
@@ -13,7 +14,7 @@ from dagster import (
 )
 from pyiceberg.catalog import Catalog
 
-from dagster_iceberg.config import IcebergCatalogConfig
+from dagster_iceberg.config import IcebergBranchConfig, IcebergCatalogConfig
 from dagster_iceberg.io_manager.polars import PolarsIcebergIOManager
 
 
@@ -28,6 +29,17 @@ def io_manager(
         config=IcebergCatalogConfig(properties=catalog_config_properties),
         namespace=namespace,
     )
+
+
+@pytest.fixture
+def io_manager_factory() -> Callable[[str, str, dict[str, str]], PolarsIcebergIOManager]:
+    def _factory(catalog_name: str, namespace: str, iceberg_catalog_config: IcebergCatalogConfig) -> PolarsIcebergIOManager:
+        return PolarsIcebergIOManager(
+            name=catalog_name,
+            config=iceberg_catalog_config,
+            namespace=namespace,
+        )
+    return _factory
 
 
 # NB: iceberg table identifiers are namespace + asset names (see below)
@@ -552,3 +564,23 @@ class TestIcebergIOManager:
         assert len(category_this_values) == 3
         expected_category_this_values = {k.split("|")[0] for k in keys}
         assert category_this_values == expected_category_this_values
+
+
+class TestIcebergIOManagerBranching:
+
+    def test_given_no_existing_branch_when_materializing_then_create_branch(
+        self,
+        io_manager_factory: Callable[[str, str, dict[str, str]], PolarsIcebergIOManager],
+        catalog: Catalog,
+        namespace: str,
+    ):
+        iceberg_catalog_config = IcebergCatalogConfig(properties={}, branch_config=IcebergBranchConfig(branch_name="test"))
+        io_manager = io_manager_factory(catalog_name="test", namespace=namespace, iceberg_catalog_config=iceberg_catalog_config)
+
+        resource_defs = {"io_manager": io_manager}
+
+        res = materialize([b_df, b_plus_one], resources=resource_defs)
+        assert res.success
+
+        table = catalog.load_table(asset_b_df_table_identifier)
+        assert table.current_snapshot().branch_name == "test"
