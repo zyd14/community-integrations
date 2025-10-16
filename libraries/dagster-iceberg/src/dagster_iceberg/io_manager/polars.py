@@ -1,10 +1,11 @@
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Union
+from typing import Union
 
 try:
     import polars as pl
 except ImportError as e:
     raise ImportError("Please install dagster-iceberg with the 'polars' extra.") from e
+
 import pyarrow as pa
 from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
@@ -13,9 +14,6 @@ from pyiceberg import table as ibt
 from dagster_iceberg import handler as _handler
 from dagster_iceberg import io_manager as _io_manager
 from dagster_iceberg._utils import DagsterPartitionToPolarsSqlPredicateMapper, preview
-
-if TYPE_CHECKING:
-    from pyiceberg.table.snapshots import Snapshot
 
 PolarsTypes = Union[pl.LazyFrame, pl.DataFrame]  # noqa: UP007, avoid `autodoc` failure
 
@@ -28,7 +26,7 @@ class _PolarsIcebergTypeHandler(_handler.IcebergBaseTypeHandler[PolarsTypes]):
         table: ibt.Table,
         table_slice: TableSlice,
         target_type: type[PolarsTypes],
-        snapshot: "Snapshot | None" = None,
+        snapshot_id: int | None = None,
     ) -> PolarsTypes:
         selected_fields: str = (
             ",".join(table_slice.columns) if table_slice.columns is not None else "*"
@@ -42,7 +40,6 @@ class _PolarsIcebergTypeHandler(_handler.IcebergBaseTypeHandler[PolarsTypes]):
             ).partition_dimensions_to_filters()
             row_filter = " AND ".join(expressions)
 
-        snapshot_id = snapshot.snapshot_id if snapshot is not None else None
         pdf = pl.scan_iceberg(source=table, snapshot_id=snapshot_id)
 
         stmt = f"SELECT {selected_fields} FROM self"
