@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Union
+from typing import Union
 
 import pyarrow as pa
 from dagster._annotations import public
@@ -13,8 +13,6 @@ from dagster_iceberg._utils import DagsterPartitionToIcebergExpressionMapper, pr
 
 ArrowTypes = Union[pa.Table, pa.RecordBatchReader]  # noqa: UP007, avoid Pyright failure
 
-if TYPE_CHECKING:
-    from pyiceberg.table.snapshots import Snapshot
 
 class _PyArrowIcebergTypeHandler(_handler.IcebergBaseTypeHandler[ArrowTypes]):
     """Type handler that converts data between Iceberg tables and PyArrow tables."""
@@ -24,7 +22,7 @@ class _PyArrowIcebergTypeHandler(_handler.IcebergBaseTypeHandler[ArrowTypes]):
         table: ibt.Table,
         table_slice: TableSlice,
         target_type: type[ArrowTypes],
-        snapshot: "Snapshot | None" = None,
+        snapshot_id: int | None = None,
     ) -> ArrowTypes:
         selected_fields: tuple[str, ...] = (
             tuple(table_slice.columns) if table_slice.columns is not None else ("*",)
@@ -40,7 +38,6 @@ class _PyArrowIcebergTypeHandler(_handler.IcebergBaseTypeHandler[ArrowTypes]):
         else:
             row_filter = ibt.ALWAYS_TRUE
 
-        snapshot_id = snapshot.snapshot_id if snapshot is not None else None
         table_scan = table.scan(row_filter=row_filter, selected_fields=selected_fields, snapshot_id=snapshot_id)
 
         return (
