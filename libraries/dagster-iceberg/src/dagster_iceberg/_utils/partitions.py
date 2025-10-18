@@ -12,6 +12,7 @@ from typing import (
 from dagster._core.definitions import TimeWindow
 from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
 from pyiceberg import expressions as E
+from pyiceberg import transforms as Tx
 from pyiceberg import types as T
 from pyiceberg.partitioning import PartitionField, PartitionSpec
 from pyiceberg.schema import Schema
