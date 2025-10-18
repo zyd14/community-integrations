@@ -62,3 +62,4 @@ class IcebergCatalogConfig(Config):
 
     properties: dict[str, Any]
     branch_config: IcebergBranchConfig = Field(default_factory=IcebergBranchConfig, description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.")
+    error_if_branch_and_no_snapshots: bool = Field(default=False, description="Whether to error if a branch is specified but no snapshots exist on the table. If False, a warning will be logged and the write will proceed to the main branch.")

@@ -48,6 +48,7 @@ def table_writer(
     partition_spec_update_mode: str,
     dagster_run_id: str,
     branch_config: IcebergBranchConfig,
+    error_if_branch_and_no_snapshots: bool = False,
     dagster_partition_key: str | None = None,
     table_properties: dict[str, str] | None = None,
     write_mode: WriteMode = DEFAULT_WRITE_MODE,
@@ -168,6 +169,9 @@ def table_writer(
             create_branch_if_not_exists(table=table, branch_config=branch_config)
             branch_name = branch_config.branch_name
         else:
+            if error_if_branch_and_no_snapshots:
+                raise ValueError(f"Table has no snapshots, cannot write to branch {branch_config.branch_name} until a snapshot is created on the {MAIN_BRANCH} branch. Please create a snapshot on the {MAIN_BRANCH} branch first.")
+
             logger.warning("Table has no snapshots, cannot write to branch %s until a snapshot is created on the %s branch. Writing to main branch instead. Subsequent writes will be on the %s branch.", branch_config.branch_name, MAIN_BRANCH, branch_config.branch_name)
             branch_name = MAIN_BRANCH
             first_table_write_and_branch_requested = True
