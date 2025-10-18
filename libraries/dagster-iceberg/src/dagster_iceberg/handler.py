@@ -88,7 +88,6 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             table_properties=table_properties_usr,
             write_mode=write_mode_with_output_override,
             error_if_branch_and_no_snapshots=config.error_if_branch_and_no_snapshots,
-            branch_config=branch_config,
             partition_field_name_prefix=partition_field_name_prefix,
             upsert_options=upsert_options,
         )
