@@ -141,7 +141,7 @@ def create_partitioned_table_in_catalog(
         update.add_field(
             source_column_name="timestamp",
             transform=transforms.HourTransform(),
-            partition_field_name="timestamp",
+            partition_field_name="timestamp_hour",
         )
         update.add_field(
             source_column_name="category",
@@ -164,7 +164,7 @@ def create_partitioned_update_table_in_catalog(
         update.add_field(
             source_column_name="timestamp",
             transform=transforms.HourTransform(),
-            partition_field_name="timestamp",
+            partition_field_name="timestamp_hour",
         )
         update.add_field(
             source_column_name="category",
