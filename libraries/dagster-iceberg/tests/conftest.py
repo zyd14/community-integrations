@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 import random
 import shutil
 import subprocess
@@ -33,7 +34,7 @@ def compose(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
         ["docker", "compose", "up", "--build", "--wait"],
         cwd=COMPOSE_DIR,
         check=True,
-        env={"WAREHOUSE_PATH": warehouse_path},
+        env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
     )
     subprocess.run(["sleep", "10"])
     yield
@@ -41,7 +42,7 @@ def compose(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
         ["docker", "compose", "down", "--remove-orphans", "--volumes"],
         cwd=COMPOSE_DIR,
         check=True,
-        env={"WAREHOUSE_PATH": warehouse_path},
+        env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
     )
 
 
