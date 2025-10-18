@@ -109,7 +109,10 @@ ignore = [
 "kitchen-sink/*" = ["INP001"]
 
 [tool.pytest.ini_options]
-cache_dir = "./.cache/pytest"
+cache_dir = ".cache/pytest"
+filterwarnings = [
+    "ignore:.*:dagster_shared.utils.warnings.PreviewWarning",
+]
 
 [tool.pyright]
 exclude = [".venv", ".github", "docs", "tests"]
