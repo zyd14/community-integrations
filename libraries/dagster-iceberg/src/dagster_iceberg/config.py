@@ -3,9 +3,9 @@ from typing import Any
 from dagster import Config
 from dagster._annotations import public
 from pydantic import Field
+from pyiceberg.table.refs import MAIN_BRANCH
 
 from dagster_iceberg._utils.preview import preview
-from pyiceberg.table.refs import MAIN_BRANCH
 
 
 class IcebergBranchConfig(Config):
