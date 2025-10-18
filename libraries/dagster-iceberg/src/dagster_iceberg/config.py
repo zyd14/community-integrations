@@ -62,6 +62,7 @@ class IcebergCatalogConfig(Config):
 
     properties: dict[str, Any]
     branch_config: IcebergBranchConfig = Field(default_factory=IcebergBranchConfig, description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.")
+    error_if_branch_and_no_snapshots: bool = Field(default=False, description="Whether to error if a branch is specified but no snapshots exist on the table. If False, a warning will be logged and the write will proceed to the main branch.")
     partition_field_name_prefix: str = Field(
         default=DEFAULT_PARTITION_FIELD_NAME_PREFIX,
         description="Prefix to apply to the partition field names. This is required to avoid conflicts with schema field names when defining partitions using non-identity transforms in pyiceberg 0.10.0+. Defaults to 'part'.",
