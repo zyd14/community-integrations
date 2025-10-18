@@ -16,6 +16,7 @@ from pyiceberg.exceptions import (
 )
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.schema import Schema
+from pyiceberg.table.refs import MAIN_BRANCH
 
 from dagster_iceberg._utils.partitions import (
     DagsterPartitionToIcebergExpressionMapper,
@@ -26,8 +27,6 @@ from dagster_iceberg._utils.retries import IcebergOperationWithRetry
 from dagster_iceberg._utils.schema import update_table_schema
 from dagster_iceberg.config import IcebergBranchConfig
 from dagster_iceberg.version import __version__ as dagster_iceberg_version
-
-from pyiceberg.table.refs import MAIN_BRANCH
 
 logger = logging.getLogger("dagster_iceberg._utils.io")
 

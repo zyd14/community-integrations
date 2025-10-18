@@ -1,5 +1,5 @@
-from collections.abc import Callable
 import datetime
+from collections.abc import Callable
 
 import polars as pl
 import pytest
