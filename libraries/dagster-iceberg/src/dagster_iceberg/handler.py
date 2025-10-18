@@ -16,7 +16,7 @@ from pyiceberg.catalog import Catalog
 
 from dagster_iceberg._utils.io import DEFAULT_WRITE_MODE, WriteMode, table_writer
 from dagster_iceberg._utils.preview import preview
-from dagster_iceberg.config import IcebergBranchConfig, IcebergCatalogConfig
+from dagster_iceberg.config import IcebergCatalogConfig
 
 if TYPE_CHECKING:
     from pyiceberg.table.snapshots import Snapshot
