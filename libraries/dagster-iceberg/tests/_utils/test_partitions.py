@@ -301,7 +301,7 @@ def test_iceberg_table_spec_updater_update_field(
     mock_iceberg_table.update_spec.return_value.__enter__.return_value.add_field.assert_called_once_with(
         source_column_name="timestamp",
         transform=transforms.DayTransform(),
-        partition_field_name="timestamp",
+        partition_field_name="timestamp_day",
     )
 
 
@@ -335,7 +335,7 @@ def test_iceberg_table_spec_updater_add_field(
     mock_iceberg_table.update_spec.return_value.__enter__.return_value.add_field.assert_called_once_with(
         source_column_name="timestamp",
         transform=transforms.DayTransform(),
-        partition_field_name="timestamp",
+        partition_field_name="timestamp_day",
     )
 
 
@@ -452,7 +452,7 @@ def test_update_table_partition_spec(
         partition_spec_update_mode="update",
     )
     table.refresh()
-    assert sorted([f.name for f in table.spec().fields]) == ["category", "timestamp"]
+    assert sorted([f.name for f in table.spec().fields]) == ["category_identity", "timestamp_hour"]
 
 
 def test_update_table_partition_spec_with_retries(
