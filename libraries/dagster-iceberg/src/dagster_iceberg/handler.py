@@ -71,7 +71,22 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             context, write_mode_with_output_override
         )
 
-        branch_config = context.resource_config.get("branch_config", None)
+        # Get branch_config from nested config object
+        config = context.resource_config.get("config")
+        branch_config = None
+        if config is not None:
+            if hasattr(config, "branch_config"):
+                branch_config_raw = config.branch_config
+            else:
+                branch_config_raw = config.get("branch_config", None)
+            
+            # Convert dict to IcebergBranchConfig if needed
+            if branch_config_raw is not None:
+                if isinstance(branch_config_raw, dict):
+                    from dagster_iceberg.config import IcebergBranchConfig
+                    branch_config = IcebergBranchConfig(**branch_config_raw)
+                else:
+                    branch_config = branch_config_raw
 
         table_writer(
             table_slice=table_slice,
@@ -94,19 +109,21 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         current_snapshot = cast("Snapshot", table_.current_snapshot())
 
-        context.add_output_metadata(
-            {
-                "table_columns": MetadataValue.table_schema(
-                    TableSchema(
-                        columns=[
-                            TableColumn(name=f["name"], type=str(f["type"]))
-                            for f in table_.schema().model_dump()["fields"]
-                        ],
-                    ),
+        metadata = {
+            "table_columns": MetadataValue.table_schema(
+                TableSchema(
+                    columns=[
+                        TableColumn(name=f["name"], type=str(f["type"]))
+                        for f in table_.schema().model_dump()["fields"]
+                    ],
                 ),
-                **current_snapshot.model_dump(),
-            },
-        )
+            ),
+        }
+        # Add snapshot metadata if available
+        if current_snapshot is not None:
+            metadata.update(current_snapshot.model_dump())
+        
+        context.add_output_metadata(metadata)
 
     def _get_partition_field_name_prefix(self, context: OutputContext) -> str:
         """Get partition_field_name_prefix from asset definition metadata if available, otherwise fall back to IO manager config."""
@@ -190,7 +207,23 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         return upsert_options
 
     def _get_snapshot(self, context: OutputContext, table: ibt.Table) -> "Snapshot | None":
-        branch_config = context.resource_config.get("branch_config", None)
+        # Get branch_config from nested config object
+        config = context.resource_config.get("config")
+        branch_config = None
+        if config is not None:
+            if hasattr(config, "branch_config"):
+                branch_config_raw = config.branch_config
+            else:
+                branch_config_raw = config.get("branch_config", None)
+            
+            # Convert dict to IcebergBranchConfig if needed
+            if branch_config_raw is not None:
+                if isinstance(branch_config_raw, dict):
+                    from dagster_iceberg.config import IcebergBranchConfig
+                    branch_config = IcebergBranchConfig(**branch_config_raw)
+                else:
+                    branch_config = branch_config_raw
+        
         branch_name = branch_config.branch_name if branch_config is not None else None
         snapshot = table.snapshot_by_name(branch_name) if branch_name is not None else None
         table_path = ".".join(table.name())

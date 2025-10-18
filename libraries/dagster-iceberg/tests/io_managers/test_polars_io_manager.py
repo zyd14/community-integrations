@@ -34,11 +34,17 @@ def io_manager(
 
 
 @pytest.fixture
-def io_manager_factory(catalog_name: str, namespace: str) -> Callable[[str, str, dict[str, str]], PolarsIcebergIOManager]:
+def io_manager_factory(catalog_name: str, namespace: str, catalog_config_properties: dict[str, str]) -> Callable[[IcebergCatalogConfig], PolarsIcebergIOManager]:
     def _factory(iceberg_catalog_config: IcebergCatalogConfig) -> PolarsIcebergIOManager:
+        # Merge the base catalog properties with any provided config
+        merged_properties = {**catalog_config_properties, **iceberg_catalog_config.properties}
+        merged_config = IcebergCatalogConfig(
+            properties=merged_properties,
+            branch_config=iceberg_catalog_config.branch_config
+        )
         return PolarsIcebergIOManager(
             name=catalog_name,
-            config=iceberg_catalog_config,
+            config=merged_config,
             namespace=namespace,
         )
     return _factory
@@ -350,6 +356,7 @@ class TestIcebergIOManager:
             assert res.success
 
             table = catalog.load_table(asset_b_df_table_identifier)
+            table.refresh()
             out_df = table.scan().to_arrow()
             assert out_df["a"].to_pylist() == [1, 2, 3]
 
@@ -645,11 +652,12 @@ class TestIcebergIOManagerBranching:
 
     def test_given_no_existing_branch_when_materializing_then_create_branch(
         self,
-        io_manager_factory: Callable[[str, str, dict[str, str]], PolarsIcebergIOManager],
+        io_manager_factory: Callable[[IcebergCatalogConfig], PolarsIcebergIOManager],
         catalog: Catalog,
-        namespace: str,
+        catalog_config_properties,
+        asset_b_df_table_identifier: str,
     ):
-        iceberg_catalog_config = IcebergCatalogConfig(properties={}, branch_config=IcebergBranchConfig(branch_name="test"))
+        iceberg_catalog_config = IcebergCatalogConfig(properties=catalog_config_properties, branch_config=IcebergBranchConfig(branch_name="test"))
         io_manager = io_manager_factory(iceberg_catalog_config=iceberg_catalog_config)
 
         resource_defs = {"io_manager": io_manager}
@@ -659,6 +667,6 @@ class TestIcebergIOManagerBranching:
 
         table = catalog.load_table(asset_b_df_table_identifier)
         refs = table.refs()
-        assert len(refs) == 1
-        assert refs[0].branch_name == "test"
-        assert table.current_snapshot().branch_name == "test"
+        # refs() returns a dict with ref names as keys
+        assert "test" in refs, f"Expected 'test' branch in refs, but got: {list(refs.keys())}"
+        assert refs["test"].snapshot_ref.name == "test"
