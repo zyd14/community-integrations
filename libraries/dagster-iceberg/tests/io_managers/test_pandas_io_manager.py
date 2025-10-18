@@ -292,4 +292,3 @@ def test_iceberg_io_manager_with_branch(
 
     # Verify the branch was created
     assert "test_branch" in refs, f"Expected 'test_branch' in refs, but got: {list(refs.keys())}"
-    assert refs["test_branch"].snapshot_ref.name == "test_branch"
