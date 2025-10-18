@@ -165,6 +165,7 @@ def table_writer(
 
     # For newly created tables, PyIceberg requires the first write to go to main branch
     # We'll create the branch after the first write
+    first_table_write_and_branch_requested = False
     if branch_config.branch_name != MAIN_BRANCH:
         table_has_snapshots = table.current_snapshot() is not None
         if table_has_snapshots:
@@ -173,6 +174,7 @@ def table_writer(
         else:
             logger.warning("Table has no snapshots, cannot write to branch %s until a snapshot is created on the %s branch. Writing to main branch instead. Subsequent writes will be on the %s branch.", branch_config.branch_name, MAIN_BRANCH, branch_config.branch_name)
             branch_name = MAIN_BRANCH
+            first_table_write_and_branch_requested = True
     else:
         branch_name = MAIN_BRANCH
 
@@ -202,6 +204,11 @@ def table_writer(
         raise ValueError(f"Unexpected write mode: {write_mode}")
 
     logger.debug("Write completed successfully")
+    # Handle case where user had branch config but no snapshots on table
+    # This allows subsequent table reads to use the requested branch even though the first write was to main branch
+    if first_table_write_and_branch_requested:
+        logger.debug("Creating branch %s after initial write", branch_config.branch_name)
+        create_branch_if_not_exists(table=table, branch_config=branch_config)
 
 
 def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: IcebergBranchConfig):
