@@ -5,6 +5,7 @@ from dagster._annotations import public
 from pydantic import Field, model_validator
 
 from dagster_iceberg._utils import DEFAULT_PARTITION_FIELD_NAME_PREFIX, preview
+from pyiceberg.table.refs import MAIN_BRANCH
 
 
 class IcebergBranchConfig(Config):
@@ -15,7 +16,7 @@ class IcebergBranchConfig(Config):
     """
     # TODO: verify the descriptions correctly reflect how these parameters work
     ref_snapshot_id: int | None = Field(description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used.")
-    branch_name: str = Field(description="Name of the branch to use. If the specified branch does not yet exist it will be created.")
+    branch_name: str = Field(default=MAIN_BRANCH, description="Name of the branch to use. If the specified branch does not yet exist it will be created.")
     max_snapshot_age_ms: int | None = Field(description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted.")
     min_snapshots_to_keep: int | None = Field(description="Minimum number of snapshots to keep. If the number of snapshots exceeds this number, the oldest snapshot will be deleted.")
     max_ref_age_ms: int | None = Field(description="Maximum age of a reference in milliseconds. If a reference is older than this age, it will be deleted.")
@@ -60,11 +61,11 @@ class IcebergCatalogConfig(Config):
     """
 
     properties: dict[str, Any]
+    branch_config: IcebergBranchConfig = Field(default_factory=IcebergBranchConfig, description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.")
     partition_field_name_prefix: str = Field(
         default=DEFAULT_PARTITION_FIELD_NAME_PREFIX,
         description="Prefix to apply to the partition field names. This is required to avoid conflicts with schema field names when defining partitions using non-identity transforms in pyiceberg 0.10.0+. Defaults to 'part'.",
     )
-    branch_config: IcebergBranchConfig | None = Field(default=None, description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.")
 
     @model_validator(mode="after")
     def validate_partition_field_name_prefix(self) -> "IcebergCatalogConfig":

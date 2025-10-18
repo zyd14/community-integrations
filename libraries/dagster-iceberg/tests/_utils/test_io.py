@@ -11,6 +11,7 @@ from pyiceberg import expressions as E
 from pyiceberg.catalog import Catalog
 
 from dagster_iceberg._utils import io
+from dagster_iceberg.config import IcebergBranchConfig
 
 
 def run_test_write(
@@ -35,6 +36,7 @@ def run_test_write(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id=dagster_run_id,
+        branch_config=IcebergBranchConfig(),
         write_mode=write_mode,
     )
     assert catalog.table_exists(identifier_)
@@ -222,6 +224,7 @@ def test_table_writer_multi_partitioned(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     table = catalog.load_table(identifier_)
     partition_field_names = [f.name for f in table.spec().fields]
@@ -265,6 +268,7 @@ def test_table_writer_multi_partitioned_update(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     table = catalog.load_table(identifier_)
     data_out = (
@@ -307,6 +311,7 @@ def test_table_writer_multi_partitioned_update_partition_spec_change(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     data_ = data.filter(
         (pc.field("category") == "A")
@@ -333,6 +338,7 @@ def test_table_writer_multi_partitioned_update_partition_spec_change(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     path_to_dwh = (
         plb.Path(warehouse_path)
@@ -375,6 +381,7 @@ def test_table_writer_multi_partitioned_update_partition_spec_error(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     data_ = data.filter(
         (pc.field("category") == "A")
@@ -408,6 +415,7 @@ def test_table_writer_multi_partitioned_update_partition_spec_error(
             schema_update_mode="update",
             partition_spec_update_mode="error",
             dagster_run_id="hfkghdgsh467374828",
+            branch_config=IcebergBranchConfig(),
         )
 
 
@@ -428,11 +436,12 @@ def test_iceberg_table_writer_with_table_properties(
         catalog=catalog,
         schema_update_mode="update",
         partition_spec_update_mode="update",
+        dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
         table_properties={
             "write.parquet.page-size-bytes": "2048",  # 2MB
             "write.parquet.page-row-limit": "10000",
         },
-        dagster_run_id="hfkghdgsh467374828",
     )
     table = catalog.load_table(identifier_)
     assert table.properties["write.parquet.page-size-bytes"] == "2048"
@@ -462,6 +471,7 @@ def test_iceberg_table_writer_drop_partition_spec_column(
         schema_update_mode="update",
         partition_spec_update_mode="update",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     # Second write: user drops partition column but keeps the partition spec
     data = data.drop("timestamp")
@@ -485,6 +495,7 @@ def test_iceberg_table_writer_drop_partition_spec_column(
             schema_update_mode="update",
             partition_spec_update_mode="update",
             dagster_run_id="gfgd744445dfhgfgfg",
+            branch_config=IcebergBranchConfig(),
         )
 
 
@@ -511,6 +522,7 @@ def test_write_from_any_to_zero_partition_spec_fields(
         schema_update_mode="error",
         partition_spec_update_mode="error",
         dagster_run_id="hfkghdgsh467374828",
+        branch_config=IcebergBranchConfig(),
     )
     # Second write: user drops the partition spec
     io.table_writer(
@@ -524,6 +536,7 @@ def test_write_from_any_to_zero_partition_spec_fields(
         schema_update_mode="error",
         partition_spec_update_mode="update",
         dagster_run_id="gfgd744445dfhgfgfg",
+        branch_config=IcebergBranchConfig(),
     )
     table = catalog.load_table(f"{namespace}.{table_}")
     assert len(table.specs()) == 2
