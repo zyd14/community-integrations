@@ -10,3 +10,4 @@
 ### Changed
 
 - Rename I/O managers from `<Storage><Engine>IOManager` to `<Engine><Storage>IOManager`.
+- Support for pyiceberg 0.10.0. Change behavior for how partition field names are calculated to address validation introduced in [pyiceberg #2505](https://github.com/apache/iceberg-python/pull/2305). Partition field names calculated for Dagster asset partitions now include a configurable prefix before the column name they reference.
