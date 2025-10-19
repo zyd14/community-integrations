@@ -291,7 +291,7 @@ class TestIcebergIOManager:
 
         table = catalog.load_table(asset_daily_partitioned_table_identifier)
         assert len(table.spec().fields) == 1
-        assert table.spec().fields[0].name == "partition"
+        assert table.spec().fields[0].name == "partition_day"
 
         out_df = table.scan().to_arrow()
         assert out_df["partition"].to_pylist() == [
@@ -327,7 +327,7 @@ class TestIcebergIOManager:
 
         table = catalog.load_table(asset_daily_partitioned_table_identifier)
         assert len(table.spec().fields) == 1
-        assert table.spec().fields[0].name == "partition"
+        assert table.spec().fields[0].name == "partition_day"
 
         out_df = table.scan().to_arrow()
         assert len(out_df) == 1
@@ -361,7 +361,7 @@ class TestIcebergIOManager:
 
         table = catalog.load_table(asset_daily_partitioned_append_mode_table_identifier)
         assert len(table.spec().fields) == 1
-        assert table.spec().fields[0].name == "partition"
+        assert table.spec().fields[0].name == "partition_day"
 
         out_df = table.scan().to_arrow()
         assert sorted(out_df["partition"].to_pylist()) == [
@@ -394,7 +394,7 @@ class TestIcebergIOManager:
 
         table = catalog.load_table(asset_hourly_partitioned_table_identifier)
         assert len(table.spec().fields) == 1
-        assert table.spec().fields[0].name == "partition"
+        assert table.spec().fields[0].name == "partition_hour"
 
         out_df = table.scan().to_arrow()
         assert out_df["partition"].to_pylist() == [
@@ -431,7 +431,7 @@ class TestIcebergIOManager:
 
         table = catalog.load_table(asset_multi_partitioned_table_identifier)
         assert len(table.spec().fields) == 2
-        assert [f.name for f in table.spec().fields] == ["category_this", "date_this"]
+        assert [f.name for f in table.spec().fields] == ["category_this_identity", "date_this_day"]
 
         out_df = table.scan().to_arrow()
         assert out_df["date_this"].to_pylist() == [
@@ -476,7 +476,7 @@ class TestIcebergIOManager:
 
         table = catalog.load_table(asset_multi_partitioned_append_mode_table_identifier)
         assert len(table.spec().fields) == 2
-        assert [f.name for f in table.spec().fields] == ["category_this", "date_this"]
+        assert [f.name for f in table.spec().fields] == ["category_this_identity", "date_this_day"]
 
         out_df = table.scan().to_arrow()
         assert len(out_df) == len(keys)
@@ -527,7 +527,7 @@ class TestIcebergIOManager:
             asset_multi_partitioned_overwrite_mode_table_identifier
         )
         assert len(table.spec().fields) == 2
-        assert [f.name for f in table.spec().fields] == ["category_this", "date_this"]
+        assert [f.name for f in table.spec().fields] == ["category_this_identity", "date_this_day"]
 
         out_df = table.scan().to_arrow()
         assert len(out_df) == 3
