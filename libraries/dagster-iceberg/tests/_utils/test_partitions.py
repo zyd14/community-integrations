@@ -301,7 +301,7 @@ def test_iceberg_table_spec_updater_update_field(
     mock_iceberg_table.update_spec.return_value.__enter__.return_value.add_field.assert_called_once_with(
         source_column_name="timestamp",
         transform=transforms.DayTransform(),
-        partition_field_name="timestamp_day",
+        partition_field_name="part_timestamp",
     )
 
 
@@ -335,7 +335,7 @@ def test_iceberg_table_spec_updater_add_field(
     mock_iceberg_table.update_spec.return_value.__enter__.return_value.add_field.assert_called_once_with(
         source_column_name="timestamp",
         transform=transforms.DayTransform(),
-        partition_field_name="timestamp_day",
+        partition_field_name="part_timestamp",
     )
 
 
@@ -452,7 +452,7 @@ def test_update_table_partition_spec(
         partition_spec_update_mode="update",
     )
     table.refresh()
-    assert sorted([f.name for f in table.spec().fields]) == ["category_identity", "timestamp_hour"]
+    assert sorted([f.name for f in table.spec().fields]) == ["part_category", "part_timestamp"]
 
 
 def test_update_table_partition_spec_with_retries(
@@ -579,20 +579,20 @@ def test_dagster_partition_to_pyiceberg_expression_mapper_with_multiple_categori
 @pytest.mark.parametrize(
     ("field_name","transform","expected_name"),
     [
-        # Time-based transforms
-        ("ts", transforms.YearTransform(), "ts_year"),
-        ("ts", transforms.MonthTransform(), "ts_month"),
-        ("ts", transforms.DayTransform(), "ts_day"),
-        ("ts", transforms.HourTransform(), "ts_hour"),
+        # All transforms now use simple prefix naming
+        ("ts", transforms.YearTransform(), "part_ts"),
+        ("ts", transforms.MonthTransform(), "part_ts"),
+        ("ts", transforms.DayTransform(), "part_ts"),
+        ("ts", transforms.HourTransform(), "part_ts"),
         # Bucket and truncate transforms
-        ("id", transforms.BucketTransform(16), "id_bucket16"),
-        ("name", transforms.TruncateTransform(10), "name_truncate10"),
+        ("id", transforms.BucketTransform(16), "part_id"),
+        ("name", transforms.TruncateTransform(10), "part_name"),
         # Identity transform
-        ("category", transforms.IdentityTransform(), "category_identity"),
+        ("category", transforms.IdentityTransform(), "part_category"),
     ],
 )
 def test_partition_field_name_for_transforms(field_name: str, transform: transforms.Transform, expected_name: str):
-    """Test the naming convention for different transform types"""
+    """Test the simplified prefix-based naming convention (transform type no longer affects the name)"""
     assert partitions.partition_field_name_for(field_name, transform) == expected_name
 
 
@@ -601,7 +601,7 @@ def test_partition_field_name_for_unhandled_transform():
     class CustomTransform(transforms.HourTransform):
         pass
 
-    assert partitions.partition_field_name_for("field", CustomTransform()) == "field_hour"
+    assert partitions.partition_field_name_for("field", CustomTransform()) == "part_field"
 
 
 def test_get_partition_field_by_source_column(
@@ -613,13 +613,13 @@ def test_get_partition_field_by_source_column(
         iceberg_partitioning.PartitionField(
             1,  # source_id for timestamp field
             1,  # field_id
-            name="timestamp_hour",
+            name="part_timestamp",
             transform=transforms.HourTransform(),
         ),
         iceberg_partitioning.PartitionField(
             2,  # source_id for category field
             2,  # field_id
-            name="category_identity",
+            name="part_category",
             transform=transforms.IdentityTransform(),
         ),
     )
@@ -631,7 +631,7 @@ def test_get_partition_field_by_source_column(
         column_name="timestamp"
     )
     assert timestamp_field is not None
-    assert timestamp_field.name == "timestamp_hour"
+    assert timestamp_field.name == "part_timestamp"
     assert timestamp_field.source_id == 1
 
     category_field = partitions._get_partition_field_by_source_column(
@@ -640,7 +640,7 @@ def test_get_partition_field_by_source_column(
         column_name="category"
     )
     assert category_field is not None
-    assert category_field.name == "category_identity"
+    assert category_field.name == "part_category"
     assert category_field.source_id == 2
 
     # Test non-existent column (schema.find_field will raise ValueError)
@@ -751,7 +751,7 @@ def test_partition_field_naming_avoids_column_conflicts(
     # Verify we get the new naming convention
     partition_fields = table.spec().fields
     assert len(partition_fields) == 1
-    assert partition_fields[0].name == "timestamp_hour"
+    assert partition_fields[0].name == "part_timestamp"
     assert partition_fields[0].source_id == table.schema().find_field("timestamp").field_id
     assert isinstance(partition_fields[0].transform, transforms.HourTransform)
 
@@ -790,7 +790,7 @@ def test_partition_transform_change_detection(
     table.refresh()
 
     assert len(table.spec().fields) == 1
-    assert table.spec().fields[0].name == "timestamp_hour"
+    assert table.spec().fields[0].name == "part_timestamp"
     assert isinstance(table.spec().fields[0].transform, transforms.HourTransform)
 
     # Now change to daily partitioning
@@ -814,7 +814,7 @@ def test_partition_transform_change_detection(
 
     # Should have updated to daily
     assert len(table.spec().fields) == 1
-    assert table.spec().fields[0].name == "timestamp_day"
+    assert table.spec().fields[0].name == "part_timestamp"
     assert isinstance(table.spec().fields[0].transform, transforms.DayTransform)
 
 
@@ -888,16 +888,16 @@ def test_multiple_transform_types_in_same_table(
     assert len(partition_fields) == 4
 
     # Check each field has correct naming and transform
-    assert "timestamp_day" in partition_fields
-    assert isinstance(partition_fields["timestamp_day"].transform, transforms.DayTransform)
+    assert "part_timestamp" in partition_fields
+    assert isinstance(partition_fields["part_timestamp"].transform, transforms.DayTransform)
 
-    assert "category_identity" in partition_fields
-    assert isinstance(partition_fields["category_identity"].transform, transforms.IdentityTransform)
+    assert "part_category" in partition_fields
+    assert isinstance(partition_fields["part_category"].transform, transforms.IdentityTransform)
 
-    assert "id_bucket16" in partition_fields
-    assert isinstance(partition_fields["id_bucket16"].transform, transforms.BucketTransform)
-    assert partition_fields["id_bucket16"].transform.num_buckets == 16
+    assert "part_id" in partition_fields
+    assert isinstance(partition_fields["part_id"].transform, transforms.BucketTransform)
+    assert partition_fields["part_id"].transform.num_buckets == 16
 
-    assert "name_truncate10" in partition_fields
-    assert isinstance(partition_fields["name_truncate10"].transform, transforms.TruncateTransform)
-    assert partition_fields["name_truncate10"].transform.width == 10
+    assert "part_name" in partition_fields
+    assert isinstance(partition_fields["part_name"].transform, transforms.TruncateTransform)
+    assert partition_fields["part_name"].transform.width == 10

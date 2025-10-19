@@ -35,6 +35,7 @@ class WriteMode(Enum):
 
 
 DEFAULT_WRITE_MODE: Final[WriteMode] = WriteMode.overwrite
+DEFAULT_PARTITION_FIELD_NAME_PREFIX: Final[str] = "part"
 
 
 def table_writer(
@@ -44,6 +45,7 @@ def table_writer(
     schema_update_mode: str,
     partition_spec_update_mode: str,
     dagster_run_id: str,
+    partition_field_name_prefix: str = DEFAULT_PARTITION_FIELD_NAME_PREFIX,
     dagster_partition_key: str | None = None,
     table_properties: dict[str, str] | None = None,
     write_mode: WriteMode = DEFAULT_WRITE_MODE,
@@ -113,6 +115,7 @@ def table_writer(
                 table=table.refresh(),
                 table_slice=table_slice,
                 partition_spec_update_mode=partition_spec_update_mode,
+                partition_field_name_prefix=partition_field_name_prefix,
             )
         if table_properties is not None:
             update_table_properties(
@@ -135,6 +138,7 @@ def table_writer(
                 # When creating new tables with dagster partitions, we always update
                 # the partition spec
                 partition_spec_update_mode="update",
+                partition_field_name_prefix=partition_field_name_prefix,
             )
 
     row_filter: E.BooleanExpression

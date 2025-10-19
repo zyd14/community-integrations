@@ -29,34 +29,20 @@ partition_types = T.StringType
 K = TypeVar("K")
 
 
-def partition_field_name_for(column: str, transform: Tx.Transform) -> str:
-    """Generate a partition field name based on column name and transform type.
+def partition_field_name_for(column: str, prefix: str) -> str:
+    """Generate a partition field name with configurable prefix to avoid column name conflicts.
 
     This function creates stable, compliant spec field names that avoid conflicts
     with table column names when using transforms in pyiceberg 0.10.0+.
 
     Args:
         column: The source column name
-        transform: The PyIceberg transform object
+        prefix: The prefix to apply to the column name
 
     Returns:
-        A unique partition field name combining column and transform info
+        A unique partition field name with prefix applied to column name
     """
-    if isinstance(transform, Tx.YearTransform):
-        return f"{column}_year"
-    if isinstance(transform, Tx.MonthTransform):
-        return f"{column}_month"
-    if isinstance(transform, Tx.DayTransform):
-        return f"{column}_day"
-    if isinstance(transform, Tx.HourTransform):
-        return f"{column}_hour"
-    if isinstance(transform, Tx.BucketTransform):
-        return f"{column}_bucket{transform.num_buckets}"
-    if isinstance(transform, Tx.TruncateTransform):
-        return f"{column}_truncate{transform.width}"
-    if isinstance(transform, Tx.IdentityTransform):
-        return f"{column}_identity"
-    return f"{column}_{transform.__class__.__name__.replace('Transform','').lower()}"
+    return f"{prefix}_{column}"
 
 
 def _get_partition_field_by_source_column(schema: Schema, spec: PartitionSpec, column_name: str) -> PartitionField | None:
@@ -268,12 +254,13 @@ def update_table_partition_spec(
     table: Table,
     table_slice: TableSlice,
     partition_spec_update_mode: str,
+    partition_field_name_prefix: str = "part",
 ):
     partition_dimensions = cast(
         "Sequence[TablePartitionDimension]",
         table_slice.partition_dimensions,
     )
-    PyIcebergPartitionSpecUpdaterWithRetry(table=table).execute(
+    PyIcebergPartitionSpecUpdaterWithRetry(table=table, partition_field_name_prefix=partition_field_name_prefix).execute(
         # 3 retries per partition dimension
         retries=(3 * len(partition_dimensions) if len(partition_dimensions) > 0 else 3),
         exception_types=ValueError,
@@ -283,6 +270,10 @@ def update_table_partition_spec(
 
 
 class PyIcebergPartitionSpecUpdaterWithRetry(IcebergOperationWithRetry):
+    def __init__(self, table: Table, partition_field_name_prefix: str = "part"):
+        super().__init__(table)
+        self.partition_field_name_prefix = partition_field_name_prefix
+
     def operation(self, table_slice: TableSlice, partition_spec_update_mode: str):
         self.logger.debug("Updating table partition spec")
         IcebergTableSpecUpdater(
@@ -292,6 +283,7 @@ class PyIcebergPartitionSpecUpdaterWithRetry(IcebergOperationWithRetry):
                 iceberg_partition_spec=self.table.spec(),
             ),
             partition_spec_update_mode=partition_spec_update_mode,
+            partition_field_name_prefix=self.partition_field_name_prefix,
         ).update_table_spec(table=self.table)
 
 
@@ -501,9 +493,11 @@ class IcebergTableSpecUpdater:
         self,
         partition_mapping: PartitionMapper,
         partition_spec_update_mode: str,
+        partition_field_name_prefix: str,
     ):
         self.partition_spec_update_mode = partition_spec_update_mode
         self.partition_mapping = partition_mapping
+        self.partition_field_name_prefix = partition_field_name_prefix
         self.logger = logging.getLogger(
             "dagster_iceberg._utils.partitions.IcebergTableSpecUpdater",
         )
@@ -543,7 +537,7 @@ class IcebergTableSpecUpdater:
 
         # Generate a unique partition field name that avoids conflicts with column names
         # when using transforms (required for pyiceberg 0.10.0+ compatibility)
-        partition_field_name = partition_field_name_for(partition.partition_expr, transform)
+        partition_field_name = partition_field_name_for(partition.partition_expr, prefix=self.partition_field_name_prefix)
 
         self.logger.debug("Setting new partition column: %s", partition.partition_expr)
         self.logger.debug("Using transform: %s", transform)
