@@ -252,6 +252,7 @@ def test_iceberg_table_spec_updater_delete_field(
             table_slice=table_slice,
         ),
         partition_spec_update_mode="update",
+        partition_field_name_prefix="part",
     )
     mock_iceberg_table = mock.MagicMock()
     spec_updater.update_table_spec(table=mock_iceberg_table)
@@ -291,6 +292,7 @@ def test_iceberg_table_spec_updater_update_field(
             table_slice=table_slice,
         ),
         partition_spec_update_mode="update",
+        partition_field_name_prefix="part",
     )
     mock_iceberg_table = mock.MagicMock()
     spec_updater.update_table_spec(table=mock_iceberg_table)
@@ -328,6 +330,7 @@ def test_iceberg_table_spec_updater_add_field(
             table_slice=table_slice,
         ),
         partition_spec_update_mode="update",
+        partition_field_name_prefix="part",
     )
     mock_iceberg_table = mock.MagicMock()
     spec_updater.update_table_spec(table=mock_iceberg_table)
@@ -362,6 +365,7 @@ def test_iceberg_table_spec_updater_fails_with_error_update_mode(
             table_slice=table_slice,
         ),
         partition_spec_update_mode="error",
+        partition_field_name_prefix="part",
     )
     mock_iceberg_table = mock.MagicMock()
     with pytest.raises(ValueError, match="Partition spec update mode is set to"):
@@ -404,6 +408,7 @@ def test_iceberg_table_spec_updater_fails_with_bad_timestamp_data_type(
                 table_slice=table_slice,
             ),
             partition_spec_update_mode="update",
+            partition_field_name_prefix="part",
         ).update_table_spec(table=mock_iceberg_table)
 
 
@@ -439,6 +444,7 @@ def test_iceberg_table_spec_updater_fails_with_bad_static_partition_data_type(
                 table_slice=table_slice,
             ),
             partition_spec_update_mode="update",
+            partition_field_name_prefix="part",
         ).update_table_spec(table=mock_iceberg_table)
 
 
@@ -580,35 +586,28 @@ def test_dagster_partition_to_pyiceberg_expression_mapper_with_multiple_categori
 
 
 @pytest.mark.parametrize(
-    ("field_name", "transform", "expected_name"),
+    ("field_name", "prefix", "expected_name"),
     [
-        # All transforms now use simple prefix naming
-        ("ts", transforms.YearTransform(), "part_ts"),
-        ("ts", transforms.MonthTransform(), "part_ts"),
-        ("ts", transforms.DayTransform(), "part_ts"),
-        ("ts", transforms.HourTransform(), "part_ts"),
-        # Bucket and truncate transforms
-        ("id", transforms.BucketTransform(16), "part_id"),
-        ("name", transforms.TruncateTransform(10), "part_name"),
-        # Identity transform
-        ("category", transforms.IdentityTransform(), "part_category"),
+        # Different field names with same prefix
+        ("ts", "part", "part_ts"),
+        ("id", "part", "part_id"),
+        ("name", "part", "part_name"),
+        ("category", "part", "part_category"),
+        # Test with different prefix
+        ("field", "custom", "custom_field"),
     ],
 )
 def test_partition_field_name_for_transforms(
-    field_name: str, transform: transforms.Transform, expected_name: str
+    field_name: str, prefix: str, expected_name: str
 ):
     """Test the simplified prefix-based naming convention (transform type no longer affects the name)"""
-    assert partitions.partition_field_name_for(field_name, transform) == expected_name
+    assert partitions.partition_field_name_for(field_name, prefix) == expected_name
 
 
 def test_partition_field_name_for_unhandled_transform():
-    """Test the naming convention for unhandled transform types"""
-
-    class CustomTransform(transforms.HourTransform):
-        pass
-
+    """Test the naming convention for any prefix"""
     assert (
-        partitions.partition_field_name_for("field", CustomTransform()) == "part_field"
+        partitions.partition_field_name_for("field", "part") == "part_field"
     )
 
 
@@ -876,14 +875,14 @@ def test_multiple_transform_types_in_same_table(
             source_column_name="id",
             transform=transforms.BucketTransform(16),
             partition_field_name=partitions.partition_field_name_for(
-                "id", transforms.BucketTransform(16)
+                "id", "part"
             ),
         )
         update.add_field(
             source_column_name="name",
             transform=transforms.TruncateTransform(10),
             partition_field_name=partitions.partition_field_name_for(
-                "name", transforms.TruncateTransform(10)
+                "name", "part"
             ),
         )
 
