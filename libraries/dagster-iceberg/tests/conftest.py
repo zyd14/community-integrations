@@ -3,16 +3,15 @@ import os
 import random
 import shutil
 import subprocess
-from time import sleep
 from collections.abc import Iterator
+from time import sleep
 
 import psycopg2
 import pyarrow as pa
 import pytest
 from dagster._utils import file_relative_path
-from pyiceberg.catalog import Catalog, load_catalog
-
 from dotenv import load_dotenv
+from pyiceberg.catalog import Catalog, load_catalog
 
 load_dotenv()
 

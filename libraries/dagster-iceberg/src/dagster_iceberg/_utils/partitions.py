@@ -12,7 +12,6 @@ from typing import (
 from dagster._core.definitions import TimeWindow
 from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
 from pyiceberg import expressions as E
-from pyiceberg import transforms as Tx
 from pyiceberg import types as T
 from pyiceberg.partitioning import PartitionField, PartitionSpec
 from pyiceberg.schema import Schema
@@ -45,7 +44,9 @@ def partition_field_name_for(column: str, prefix: str) -> str:
     return f"{prefix}_{column}"
 
 
-def _get_partition_field_by_source_column(schema: Schema, spec: PartitionSpec, column_name: str) -> PartitionField | None:
+def _get_partition_field_by_source_column(
+    schema: Schema, spec: PartitionSpec, column_name: str
+) -> PartitionField | None:
     """Find a partition field in the spec by its source column name.
 
     This function looks up partition fields by matching the source column ID
@@ -260,7 +261,9 @@ def update_table_partition_spec(
         "Sequence[TablePartitionDimension]",
         table_slice.partition_dimensions,
     )
-    PyIcebergPartitionSpecUpdaterWithRetry(table=table, partition_field_name_prefix=partition_field_name_prefix).execute(
+    PyIcebergPartitionSpecUpdaterWithRetry(
+        table=table, partition_field_name_prefix=partition_field_name_prefix
+    ).execute(
         # 3 retries per partition dimension
         retries=(3 * len(partition_dimensions) if len(partition_dimensions) > 0 else 3),
         exception_types=ValueError,
@@ -468,7 +471,9 @@ class PartitionMapper:
         """Retrieve partition fields need to be removed from the iceberg table."""
         # Get current dagster partition column names
         current_partition_columns = set(
-            self.get_dagster_partition_dimension_names(allow_empty_dagster_partitions=True)
+            self.get_dagster_partition_dimension_names(
+                allow_empty_dagster_partitions=True
+            )
         )
 
         # Find partition fields whose source columns are no longer in dagster partitions
@@ -482,7 +487,10 @@ class PartitionMapper:
                     break
 
             # If source column is not in current dagster partitions, mark for deletion
-            if source_column_name is not None and source_column_name not in current_partition_columns:
+            if (
+                source_column_name is not None
+                and source_column_name not in current_partition_columns
+            ):
                 deleted_fields.append(partition_field)
 
         return deleted_fields
@@ -537,7 +545,9 @@ class IcebergTableSpecUpdater:
 
         # Generate a unique partition field name that avoids conflicts with column names
         # when using transforms (required for pyiceberg 0.10.0+ compatibility)
-        partition_field_name = partition_field_name_for(partition.partition_expr, prefix=self.partition_field_name_prefix)
+        partition_field_name = partition_field_name_for(
+            partition.partition_expr, prefix=self.partition_field_name_prefix
+        )
 
         self.logger.debug("Setting new partition column: %s", partition.partition_expr)
         self.logger.debug("Using transform: %s", transform)

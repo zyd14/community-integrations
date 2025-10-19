@@ -342,7 +342,11 @@ def test_table_writer_multi_partitioned_update_partition_spec_change(
         / "timestamp_hour=2023-01-01-00"
     )
     categories = sorted([p.name for p in path_to_dwh.glob("*") if p.is_dir()])
-    assert categories == ["category_identity=A", "category_identity=B", "category_identity=C"]
+    assert categories == [
+        "category_identity=A",
+        "category_identity=B",
+        "category_identity=C",
+    ]
     assert (
         len(catalog.load_table(identifier_).scan().to_arrow().to_pydict()["value"])
         == 1440

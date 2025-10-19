@@ -14,8 +14,7 @@ from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
 
-from dagster_iceberg._utils import preview, table_writer, DEFAULT_WRITE_MODE, WriteMode
-
+from dagster_iceberg._utils import DEFAULT_WRITE_MODE, WriteMode, preview, table_writer
 
 if TYPE_CHECKING:
     from pyiceberg.table.snapshots import Snapshot
@@ -58,8 +57,12 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         schema_update_mode = metadata.get("schema_update_mode", "error")
 
         # Get partition_field_name_prefix from IO manager config if available, otherwise from metadata
-        partition_field_name_prefix = context.resource_config.get("config", {})["partition_field_name_prefix"]
-        partition_field_name_prefix = metadata.get("partition_field_name_prefix", partition_field_name_prefix)
+        partition_field_name_prefix = context.resource_config.get("config", {})[
+            "partition_field_name_prefix"
+        ]
+        partition_field_name_prefix = metadata.get(
+            "partition_field_name_prefix", partition_field_name_prefix
+        )
 
         write_mode_with_output_override = self._get_write_mode(context)
 

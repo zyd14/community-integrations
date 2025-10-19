@@ -1,8 +1,14 @@
 from dagster_iceberg._utils.io import (
-    table_writer as table_writer,
     DEFAULT_PARTITION_FIELD_NAME_PREFIX as DEFAULT_PARTITION_FIELD_NAME_PREFIX,
+)
+from dagster_iceberg._utils.io import (
     DEFAULT_WRITE_MODE as DEFAULT_WRITE_MODE,
+)
+from dagster_iceberg._utils.io import (
     WriteMode as WriteMode,
+)
+from dagster_iceberg._utils.io import (
+    table_writer as table_writer,
 )
 from dagster_iceberg._utils.partitions import (
     DagsterPartitionToDaftSqlPredicateMapper as DagsterPartitionToDaftSqlPredicateMapper,

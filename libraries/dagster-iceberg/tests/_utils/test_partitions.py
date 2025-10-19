@@ -452,7 +452,10 @@ def test_update_table_partition_spec(
         partition_spec_update_mode="update",
     )
     table.refresh()
-    assert sorted([f.name for f in table.spec().fields]) == ["part_category", "part_timestamp"]
+    assert sorted([f.name for f in table.spec().fields]) == [
+        "part_category",
+        "part_timestamp",
+    ]
 
 
 def test_update_table_partition_spec_with_retries(
@@ -577,7 +580,7 @@ def test_dagster_partition_to_pyiceberg_expression_mapper_with_multiple_categori
 
 
 @pytest.mark.parametrize(
-    ("field_name","transform","expected_name"),
+    ("field_name", "transform", "expected_name"),
     [
         # All transforms now use simple prefix naming
         ("ts", transforms.YearTransform(), "part_ts"),
@@ -591,17 +594,22 @@ def test_dagster_partition_to_pyiceberg_expression_mapper_with_multiple_categori
         ("category", transforms.IdentityTransform(), "part_category"),
     ],
 )
-def test_partition_field_name_for_transforms(field_name: str, transform: transforms.Transform, expected_name: str):
+def test_partition_field_name_for_transforms(
+    field_name: str, transform: transforms.Transform, expected_name: str
+):
     """Test the simplified prefix-based naming convention (transform type no longer affects the name)"""
     assert partitions.partition_field_name_for(field_name, transform) == expected_name
 
 
 def test_partition_field_name_for_unhandled_transform():
     """Test the naming convention for unhandled transform types"""
+
     class CustomTransform(transforms.HourTransform):
         pass
 
-    assert partitions.partition_field_name_for("field", CustomTransform()) == "part_field"
+    assert (
+        partitions.partition_field_name_for("field", CustomTransform()) == "part_field"
+    )
 
 
 def test_get_partition_field_by_source_column(
@@ -626,18 +634,14 @@ def test_get_partition_field_by_source_column(
 
     # Test finding existing fields
     timestamp_field = partitions._get_partition_field_by_source_column(
-        schema=iceberg_table_schema,
-        spec=spec,
-        column_name="timestamp"
+        schema=iceberg_table_schema, spec=spec, column_name="timestamp"
     )
     assert timestamp_field is not None
     assert timestamp_field.name == "part_timestamp"
     assert timestamp_field.source_id == 1
 
     category_field = partitions._get_partition_field_by_source_column(
-        schema=iceberg_table_schema,
-        spec=spec,
-        column_name="category"
+        schema=iceberg_table_schema, spec=spec, column_name="category"
     )
     assert category_field is not None
     assert category_field.name == "part_category"
@@ -645,18 +649,14 @@ def test_get_partition_field_by_source_column(
 
     # Test non-existent column (schema.find_field will raise ValueError)
     missing_field = partitions._get_partition_field_by_source_column(
-        schema=iceberg_table_schema,
-        spec=spec,
-        column_name="nonexistent"
+        schema=iceberg_table_schema, spec=spec, column_name="nonexistent"
     )
     assert missing_field is None
 
     # Test column exists but not in partition spec
     empty_spec = iceberg_partitioning.PartitionSpec()
     no_partition_field = partitions._get_partition_field_by_source_column(
-        schema=iceberg_table_schema,
-        spec=empty_spec,
-        column_name="timestamp"
+        schema=iceberg_table_schema, spec=empty_spec, column_name="timestamp"
     )
     assert no_partition_field is None
 
@@ -710,7 +710,9 @@ def test_existing_table_partition_names_unchanged(
 
     # Verify the old partition field name is preserved (no unnecessary changes)
     assert len(table.spec().fields) == 1
-    assert table.spec().fields[0].name == original_field_name  # Should still be "timestamp"
+    assert (
+        table.spec().fields[0].name == original_field_name
+    )  # Should still be "timestamp"
 
 
 def test_partition_field_naming_avoids_column_conflicts(
@@ -752,7 +754,9 @@ def test_partition_field_naming_avoids_column_conflicts(
     partition_fields = table.spec().fields
     assert len(partition_fields) == 1
     assert partition_fields[0].name == "part_timestamp"
-    assert partition_fields[0].source_id == table.schema().find_field("timestamp").field_id
+    assert (
+        partition_fields[0].source_id == table.schema().find_field("timestamp").field_id
+    )
     assert isinstance(partition_fields[0].transform, transforms.HourTransform)
 
 
@@ -871,12 +875,16 @@ def test_multiple_transform_types_in_same_table(
         update.add_field(
             source_column_name="id",
             transform=transforms.BucketTransform(16),
-            partition_field_name=partitions.partition_field_name_for("id", transforms.BucketTransform(16)),
+            partition_field_name=partitions.partition_field_name_for(
+                "id", transforms.BucketTransform(16)
+            ),
         )
         update.add_field(
             source_column_name="name",
             transform=transforms.TruncateTransform(10),
-            partition_field_name=partitions.partition_field_name_for("name", transforms.TruncateTransform(10)),
+            partition_field_name=partitions.partition_field_name_for(
+                "name", transforms.TruncateTransform(10)
+            ),
         )
 
     table.refresh()
@@ -889,15 +897,21 @@ def test_multiple_transform_types_in_same_table(
 
     # Check each field has correct naming and transform
     assert "part_timestamp" in partition_fields
-    assert isinstance(partition_fields["part_timestamp"].transform, transforms.DayTransform)
+    assert isinstance(
+        partition_fields["part_timestamp"].transform, transforms.DayTransform
+    )
 
     assert "part_category" in partition_fields
-    assert isinstance(partition_fields["part_category"].transform, transforms.IdentityTransform)
+    assert isinstance(
+        partition_fields["part_category"].transform, transforms.IdentityTransform
+    )
 
     assert "part_id" in partition_fields
     assert isinstance(partition_fields["part_id"].transform, transforms.BucketTransform)
     assert partition_fields["part_id"].transform.num_buckets == 16
 
     assert "part_name" in partition_fields
-    assert isinstance(partition_fields["part_name"].transform, transforms.TruncateTransform)
+    assert isinstance(
+        partition_fields["part_name"].transform, transforms.TruncateTransform
+    )
     assert partition_fields["part_name"].transform.width == 10

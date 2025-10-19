@@ -150,7 +150,9 @@ def create_partitioned_table_in_catalog(
         update.add_field(
             source_column_name="category",
             transform=identity_transform,
-            partition_field_name=partition_field_name_for("category", identity_transform),
+            partition_field_name=partition_field_name_for(
+                "category", identity_transform
+            ),
         )
 
 
@@ -175,7 +177,9 @@ def create_partitioned_update_table_in_catalog(
         update.add_field(
             source_column_name="category",
             transform=identity_transform,
-            partition_field_name=partition_field_name_for("category", identity_transform),
+            partition_field_name=partition_field_name_for(
+                "category", identity_transform
+            ),
         )
 
 
