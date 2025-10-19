@@ -3,6 +3,7 @@ import os
 import random
 import shutil
 import subprocess
+from time import sleep
 from collections.abc import Iterator
 
 import psycopg2
@@ -10,6 +11,10 @@ import pyarrow as pa
 import pytest
 from dagster._utils import file_relative_path
 from pyiceberg.catalog import Catalog, load_catalog
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 COMPOSE_DIR = file_relative_path(__file__, "docker")
 
@@ -31,19 +36,20 @@ def compose(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
     )
 
     subprocess.run(
-        ["docker", "compose", "up", "--build", "--wait"],
+        ["docker", "compose", "up", "--build", "--wait", "--no-recreate"],
         cwd=COMPOSE_DIR,
         check=True,
         env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
     )
-    subprocess.run(["sleep", "10"])
+    sleep(5)
     yield
-    subprocess.run(
-        ["docker", "compose", "down", "--remove-orphans", "--volumes"],
-        cwd=COMPOSE_DIR,
-        check=True,
-        env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
-    )
+    if os.getenv("TEST_NO_TEARDOWN") is None:
+        subprocess.run(
+            ["docker", "compose", "down", "--remove-orphans", "--volumes"],
+            cwd=COMPOSE_DIR,
+            check=True,
+            env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
+        )
 
 
 @pytest.fixture(scope="session")
