@@ -269,15 +269,12 @@ def update_table_partition_spec(
         exception_types=ValueError,
         table_slice=table_slice,
         partition_spec_update_mode=partition_spec_update_mode,
+        partition_field_name_prefix=partition_field_name_prefix,
     )
 
 
 class PyIcebergPartitionSpecUpdaterWithRetry(IcebergOperationWithRetry):
-    def __init__(self, table: Table, partition_field_name_prefix: str = "part"):
-        super().__init__(table)
-        self.partition_field_name_prefix = partition_field_name_prefix
-
-    def operation(self, table_slice: TableSlice, partition_spec_update_mode: str):
+    def operation(self, table_slice: TableSlice, partition_spec_update_mode: str, partition_field_name_prefix: str):
         self.logger.debug("Updating table partition spec")
         IcebergTableSpecUpdater(
             partition_mapping=PartitionMapper(
@@ -286,7 +283,7 @@ class PyIcebergPartitionSpecUpdaterWithRetry(IcebergOperationWithRetry):
                 iceberg_partition_spec=self.table.spec(),
             ),
             partition_spec_update_mode=partition_spec_update_mode,
-            partition_field_name_prefix=self.partition_field_name_prefix,
+            partition_field_name_prefix=partition_field_name_prefix,
         ).update_table_spec(table=self.table)
 
 
