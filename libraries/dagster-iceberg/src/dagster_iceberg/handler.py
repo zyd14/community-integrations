@@ -21,6 +21,7 @@ from dagster_iceberg._utils import (
     preview,
     table_writer,
 )
+from dagster_iceberg.config import IcebergCatalogConfig
 
 if TYPE_CHECKING:
     from pyiceberg.table.snapshots import Snapshot
@@ -100,12 +101,19 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
     def _get_partition_field_name_prefix(self, context: OutputContext) -> str:
         """Get partition_field_name_prefix from IO manager config if available, otherwise from asset definition metadata"""
+        if (
+            context.resource_config is None
+        ):  # This doesn't seem to ever actually happen, but that's the way OutputContext is typed
+            raise ValueError(
+                "Resource config is required to get partition_field_name_prefix. Unexpected value None found for resource_config."
+            )
+
         config = context.resource_config.get("config", {})
         if isinstance(config, dict):
             partition_field_name_prefix = config.get(
                 "partition_field_name_prefix", DEFAULT_PARTITION_FIELD_NAME_PREFIX
             )
-        elif hasattr(config, "partition_field_name_prefix"):
+        elif isinstance(config, IcebergCatalogConfig):
             partition_field_name_prefix = config.partition_field_name_prefix
         else:
             raise ValueError(
