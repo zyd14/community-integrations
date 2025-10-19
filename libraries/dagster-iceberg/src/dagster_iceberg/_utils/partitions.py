@@ -261,9 +261,7 @@ def update_table_partition_spec(
         "Sequence[TablePartitionDimension]",
         table_slice.partition_dimensions,
     )
-    PyIcebergPartitionSpecUpdaterWithRetry(
-        table=table, partition_field_name_prefix=partition_field_name_prefix
-    ).execute(
+    PyIcebergPartitionSpecUpdaterWithRetry(table=table).execute(
         # 3 retries per partition dimension
         retries=(3 * len(partition_dimensions) if len(partition_dimensions) > 0 else 3),
         exception_types=ValueError,
