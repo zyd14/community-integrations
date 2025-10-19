@@ -29,7 +29,7 @@ partition_types = T.StringType
 K = TypeVar("K")
 
 
-def partition_field_name_for(column: str, transform: object) -> str:
+def partition_field_name_for(column: str, transform: Tx.Transform) -> str:
     """Generate a partition field name based on column name and transform type.
 
     This function creates stable, compliant spec field names that avoid conflicts
@@ -73,9 +73,12 @@ def _get_partition_field_by_source_column(schema: Schema, spec: PartitionSpec, c
     Returns:
         The matching PartitionField if found, None otherwise
     """
-    field = schema.find_field(column_name)
-    if field is None:
+    try:
+        field = schema.find_field(column_name)
+    except ValueError:
+        # Column doesn't exist in schema
         return None
+
     for pf in spec.fields:
         if pf.source_id == field.field_id:
             return pf
