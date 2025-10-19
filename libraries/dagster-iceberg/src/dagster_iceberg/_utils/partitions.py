@@ -274,7 +274,12 @@ def update_table_partition_spec(
 
 
 class PyIcebergPartitionSpecUpdaterWithRetry(IcebergOperationWithRetry):
-    def operation(self, table_slice: TableSlice, partition_spec_update_mode: str, partition_field_name_prefix: str):
+    def operation(
+        self,
+        table_slice: TableSlice,
+        partition_spec_update_mode: str,
+        partition_field_name_prefix: str,
+    ):
         self.logger.debug("Updating table partition spec")
         IcebergTableSpecUpdater(
             partition_mapping=PartitionMapper(
