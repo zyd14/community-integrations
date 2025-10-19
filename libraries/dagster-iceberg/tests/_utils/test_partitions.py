@@ -606,9 +606,7 @@ def test_partition_field_name_for_transforms(
 
 def test_partition_field_name_for_unhandled_transform():
     """Test the naming convention for any prefix"""
-    assert (
-        partitions.partition_field_name_for("field", "part") == "part_field"
-    )
+    assert partitions.partition_field_name_for("field", "part") == "part_field"
 
 
 def test_get_partition_field_by_source_column(
@@ -874,16 +872,12 @@ def test_multiple_transform_types_in_same_table(
         update.add_field(
             source_column_name="id",
             transform=transforms.BucketTransform(16),
-            partition_field_name=partitions.partition_field_name_for(
-                "id", "part"
-            ),
+            partition_field_name=partitions.partition_field_name_for("id", "part"),
         )
         update.add_field(
             source_column_name="name",
             transform=transforms.TruncateTransform(10),
-            partition_field_name=partitions.partition_field_name_for(
-                "name", "part"
-            ),
+            partition_field_name=partitions.partition_field_name_for("name", "part"),
         )
 
     table.refresh()
