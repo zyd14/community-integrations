@@ -225,7 +225,7 @@ def test_table_writer_multi_partitioned(
     )
     table = catalog.load_table(identifier_)
     partition_field_names = [f.name for f in table.spec().fields]
-    assert partition_field_names == ["timestamp", "category"]
+    assert partition_field_names == ["timestamp_hour", "category_identity"]
     assert len(table.scan().to_arrow().to_pydict()["value"]) == 23
 
 
@@ -339,10 +339,10 @@ def test_table_writer_multi_partitioned_update_partition_spec_change(
         / f"{namespace}.db"
         / table_
         / "data"
-        / "timestamp=2023-01-01-00"
+        / "timestamp_hour=2023-01-01-00"
     )
     categories = sorted([p.name for p in path_to_dwh.glob("*") if p.is_dir()])
-    assert categories == ["category=A", "category=B", "category=C"]
+    assert categories == ["category_identity=A", "category_identity=B", "category_identity=C"]
     assert (
         len(catalog.load_table(identifier_).scan().to_arrow().to_pydict()["value"])
         == 1440
@@ -524,6 +524,6 @@ def test_write_from_any_to_zero_partition_spec_fields(
     table = catalog.load_table(f"{namespace}.{table_}")
     assert len(table.specs()) == 2
     # Spec from the first write
-    assert table.specs()[1].fields[0].name == "timestamp"
+    assert table.specs()[1].fields[0].name == "timestamp_hour"
     # Spec from the second write (no partition spec)
     assert len(table.spec().fields) == 0
