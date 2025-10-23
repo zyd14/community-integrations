@@ -100,7 +100,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         )
 
     def _get_partition_field_name_prefix(self, context: OutputContext) -> str:
-        """Get partition_field_name_prefix from IO manager config if available, otherwise from asset definition metadata"""
+        """Get partition_field_name_prefix from asset definition metadata if available, otherwise fall back to IO manager config."""
         if (
             context.resource_config is None
         ):  # This doesn't seem to ever actually happen, but that's the way OutputContext is typed
