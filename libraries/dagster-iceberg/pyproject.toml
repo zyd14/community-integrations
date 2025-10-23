@@ -109,7 +109,7 @@ ignore = [
 "kitchen-sink/*" = ["INP001"]
 
 [tool.pytest.ini_options]
-cache_dir = "/home/vscode/workspace/.cache/pytest"
+cache_dir = "./.cache/pytest"
 
 [tool.pyright]
 exclude = [".venv", ".github", "docs", "tests"]

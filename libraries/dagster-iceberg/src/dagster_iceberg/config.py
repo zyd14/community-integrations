@@ -2,8 +2,9 @@ from typing import Any
 
 from dagster import Config
 from dagster._annotations import public
+from pydantic import Field, model_validator
 
-from dagster_iceberg._utils import preview
+from dagster_iceberg._utils import DEFAULT_PARTITION_FIELD_NAME_PREFIX, preview
 
 
 @public
@@ -45,3 +46,13 @@ class IcebergCatalogConfig(Config):
     """
 
     properties: dict[str, Any]
+    partition_field_name_prefix: str = Field(
+        default=DEFAULT_PARTITION_FIELD_NAME_PREFIX,
+        description="Prefix to apply to the partition field names. This is required to avoid conflicts with schema field names when defining partitions using non-identity transforms in pyiceberg 0.10.0+. Defaults to 'part'.",
+    )
+
+    @model_validator(mode="after")
+    def validate_partition_field_name_prefix(self) -> "IcebergCatalogConfig":
+        if self.partition_field_name_prefix == "":
+            raise ValueError("partition_field_name_prefix cannot be an empty string")
+        return self

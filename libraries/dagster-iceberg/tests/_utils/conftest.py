@@ -10,6 +10,8 @@ from pyiceberg import transforms
 from pyiceberg import types as T
 from pyiceberg.catalog import Catalog
 
+from dagster_iceberg._utils.partitions import partition_field_name_for
+
 
 @pytest.fixture
 def time_window() -> TimeWindow:
@@ -138,15 +140,19 @@ def create_partitioned_table_in_catalog(
         schema=data_schema,
     )
     with partitioned_table.update_spec() as update:
+        hour_transform = transforms.HourTransform()
+        identity_transform = transforms.IdentityTransform()
         update.add_field(
             source_column_name="timestamp",
-            transform=transforms.HourTransform(),
-            partition_field_name="timestamp",
+            transform=hour_transform,
+            partition_field_name=partition_field_name_for("timestamp", hour_transform),
         )
         update.add_field(
             source_column_name="category",
-            transform=transforms.IdentityTransform(),
-            partition_field_name="category",
+            transform=identity_transform,
+            partition_field_name=partition_field_name_for(
+                "category", identity_transform
+            ),
         )
 
 
@@ -161,15 +167,19 @@ def create_partitioned_update_table_in_catalog(
         schema=data_schema,
     )
     with partitioned_update_table.update_spec() as update:
+        hour_transform = transforms.HourTransform()
+        identity_transform = transforms.IdentityTransform()
         update.add_field(
             source_column_name="timestamp",
-            transform=transforms.HourTransform(),
-            partition_field_name="timestamp",
+            transform=hour_transform,
+            partition_field_name=partition_field_name_for("timestamp", hour_transform),
         )
         update.add_field(
             source_column_name="category",
-            transform=transforms.IdentityTransform(),
-            partition_field_name="category",
+            transform=identity_transform,
+            partition_field_name=partition_field_name_for(
+                "category", identity_transform
+            ),
         )
 
 
