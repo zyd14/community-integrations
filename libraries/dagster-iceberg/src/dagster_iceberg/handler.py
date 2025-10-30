@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Generic, TypeVar, cast
 
-from dagster_iceberg._utils.io import UpsertOptions
 import pyarrow as pa
 from dagster import (
     InputContext,
@@ -12,7 +11,6 @@ from dagster import (
 )
 from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
-
 from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
 
@@ -23,6 +21,7 @@ from dagster_iceberg._utils import (
     preview,
     table_writer,
 )
+from dagster_iceberg._utils.io import UpsertOptions
 from dagster_iceberg.config import IcebergCatalogConfig
 
 if TYPE_CHECKING:
@@ -67,7 +66,9 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         partition_field_name_prefix = self._get_partition_field_name_prefix(context)
         write_mode_with_output_override = self._get_write_mode(context)
-        upsert_options = self._get_upsert_options(context, write_mode_with_output_override)
+        upsert_options = self._get_upsert_options(
+            context, write_mode_with_output_override
+        )
 
         table_writer(
             table_slice=table_slice,
@@ -145,20 +146,28 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         self, context: OutputContext, write_mode: WriteMode
     ) -> UpsertOptions | None:
         """Get upsert options from output metadata if available, otherwise from definition metadata.
-           Returns None if no upsert options are found in asset definition or output metadata.
+        Returns None if no upsert options are found in asset definition or output metadata.
 
-            Raises:
-                ValueError: If upsert options are not provided when using upsert write mode.
+         Raises:
+             ValueError: If upsert options are not provided when using upsert write mode.
         """
         if write_mode == WriteMode.upsert:
             # Output metadata takes precedence over definition metadata
             output_upsert_options = context.output_metadata.get("upsert_options")
-            definition_upsert_options = context.definition_metadata.get("upsert_options")
-            upsert_options = output_upsert_options if output_upsert_options is not None else definition_upsert_options
+            definition_upsert_options = context.definition_metadata.get(
+                "upsert_options"
+            )
+            upsert_options = (
+                output_upsert_options
+                if output_upsert_options is not None
+                else definition_upsert_options
+            )
             if upsert_options is not None:
                 upsert_options = UpsertOptions.model_validate(upsert_options)
             else:
-                raise ValueError("upsert_options must be provided when using upsert write mode")
+                raise ValueError(
+                    "upsert_options must be provided when using upsert write mode"
+                )
         else:
             upsert_options = None
         return upsert_options
