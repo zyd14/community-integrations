@@ -1,8 +1,7 @@
-from dataclasses import dataclass
 import logging
 from collections.abc import Sequence
 from enum import Enum
-from typing import Final, TypedDict
+from typing import Final
 
 import pyarrow as pa
 from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
@@ -386,4 +385,3 @@ class IcebergTableUpserterWithRetry(IcebergOperationWithRetry):
             when_matched_update_all=upsert_options.when_matched_update_all,
             when_not_matched_insert_all=upsert_options.when_not_matched_insert_all,
         )
-
