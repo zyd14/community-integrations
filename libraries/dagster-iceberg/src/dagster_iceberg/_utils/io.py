@@ -317,11 +317,7 @@ def upsert_to_table(
     Args:
         table (table.Table): Iceberg table
         data (pa.Table): Data to upsert to the table
-        upsert_options (UpsertOptions): Upsert options
-            - join_cols (list[str]): Columns to join on for matching
-            - when_matched_update_all (bool): Whether to update all columns when matched
-            - when_not_matched_insert_all (bool): Whether to insert all columns when not matched
-        snapshot_properties (dict[str, str] | None): Optional snapshot properties
+        upsert_options (UpsertOptions): Upsert options with join columns and any overrides for upsert action conditions
 
     Raises:
         RetryError: Raised when the commit fails after the maximum number of retries
