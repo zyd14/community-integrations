@@ -32,6 +32,7 @@ logger = logging.getLogger("dagster_iceberg._utils.io")
 class WriteMode(Enum):
     append = "append"
     overwrite = "overwrite"
+    upsert = "upsert"
 
 
 DEFAULT_WRITE_MODE: Final[WriteMode] = WriteMode.overwrite
@@ -49,6 +50,7 @@ def table_writer(
     dagster_partition_key: str | None = None,
     table_properties: dict[str, str] | None = None,
     write_mode: WriteMode = DEFAULT_WRITE_MODE,
+    upsert_options: dict[str, list[str] | bool] | None = None,
 ) -> None:
     """Writes data to an iceberg table
 
@@ -163,6 +165,19 @@ def table_writer(
             table=table,
             data=data,
             overwrite_filter=row_filter,
+            snapshot_properties=snapshot_properties,
+        )
+    elif write_mode == WriteMode.upsert:
+        if upsert_options is None:
+            raise ValueError(
+                "upsert_options must be provided when using upsert write mode. "
+                "upsert_options should contain 'join_cols', 'when_matched_update_all', "
+                "and 'when_not_matched_insert_all'."
+            )
+        upsert_to_table(
+            table=table,
+            data=data,
+            upsert_options=upsert_options,
             snapshot_properties=snapshot_properties,
         )
     else:
@@ -292,6 +307,35 @@ def append_to_table(
     )
 
 
+def upsert_to_table(
+    table: iceberg_table.Table,
+    data: pa.Table,
+    upsert_options: dict[str, list[str] | bool],
+    snapshot_properties: dict[str, str] | None = None,
+):
+    """Upserts data to an iceberg table and retries on failure
+
+    Args:
+        table (table.Table): Iceberg table
+        data (pa.Table): Data to upsert to the table
+        upsert_options (dict): Dictionary containing upsert configuration:
+            - join_cols (list[str]): Columns to join on for matching
+            - when_matched_update_all (bool): Whether to update all columns when matched
+            - when_not_matched_insert_all (bool): Whether to insert all columns when not matched
+        snapshot_properties (dict[str, str] | None): Optional snapshot properties
+
+    Raises:
+        RetryError: Raised when the commit fails after the maximum number of retries
+    """
+    IcebergTableUpserterWithRetry(table=table).execute(
+        retries=3,
+        exception_types=CommitFailedException,
+        data=data,
+        upsert_options=upsert_options,
+        snapshot_properties=snapshot_properties,
+    )
+
+
 class IcebergTableAppenderWithRetry(IcebergOperationWithRetry):
     def operation(
         self,
@@ -321,4 +365,35 @@ class IcebergTableOverwriterWithRetry(IcebergOperationWithRetry):
             snapshot_properties=(
                 snapshot_properties if snapshot_properties is not None else {}
             ),
+        )
+
+
+class IcebergTableUpserterWithRetry(IcebergOperationWithRetry):
+    def operation(
+        self,
+        data: pa.Table,
+        upsert_options: dict[str, list[str] | bool],
+        snapshot_properties: dict[str, str] | None = None,
+    ):
+        # Note: snapshot_properties parameter is kept for API consistency but not used
+        # because table.upsert() doesn't currently support snapshot_properties
+        join_cols = upsert_options.get("join_cols")
+        when_matched_update_all = upsert_options.get("when_matched_update_all", True)
+        when_not_matched_insert_all = upsert_options.get("when_not_matched_insert_all", True)
+
+        if not join_cols:
+            raise ValueError("upsert_options must contain 'join_cols' with at least one column")
+
+        self.logger.debug(
+            "Upserting to table with join_cols=%s, when_matched_update_all=%s, when_not_matched_insert_all=%s",
+            join_cols,
+            when_matched_update_all,
+            when_not_matched_insert_all,
+        )
+
+        self.table.upsert(
+            df=data,
+            join_cols=join_cols,
+            when_matched_update_all=when_matched_update_all,
+            when_not_matched_insert_all=when_not_matched_insert_all,
         )
