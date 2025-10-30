@@ -176,13 +176,6 @@ def table_writer(
             snapshot_properties=snapshot_properties,
         )
     elif write_mode == WriteMode.upsert:
-        if upsert_options is None:
-            raise ValueError(
-                "upsert_options must be provided when using upsert write mode. "
-                "upsert_options must contain a 'join_cols' key with a list of "
-                "the columns to join on, with optional keys 'when_matched_update_all' "
-                "and 'when_not_matched_insert_all' used to configure the upsert operation.",
-            )
         upsert_to_table(
             table=table,
             data=data,
