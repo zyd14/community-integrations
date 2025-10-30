@@ -65,6 +65,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         partition_field_name_prefix = self._get_partition_field_name_prefix(context)
         write_mode_with_output_override = self._get_write_mode(context)
+        upsert_options = self._get_upsert_options(context)
 
         table_writer(
             table_slice=table_slice,
@@ -79,6 +80,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             table_properties=table_properties_usr,
             write_mode=write_mode_with_output_override,
             partition_field_name_prefix=partition_field_name_prefix,
+            upsert_options=upsert_options,
         )
 
         table_ = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
@@ -136,6 +138,16 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         except ValueError as ve:
             error_msg = f"Invalid write mode: {context.output_metadata.get('write_mode')}. Valid modes are {[mode.value for mode in WriteMode]}"
             raise ValueError(error_msg) from ve
+
+    def _get_upsert_options(
+        self, context: OutputContext
+    ) -> dict[str, list[str] | bool] | None:
+        """Get upsert options from output metadata if available, otherwise from definition metadata"""
+        # Output metadata takes precedence over definition metadata
+        output_upsert_options = context.output_metadata.get("upsert_options")
+        definition_upsert_options = context.definition_metadata.get("upsert_options")
+
+        return output_upsert_options if output_upsert_options is not None else definition_upsert_options
 
     def load_input(
         self,
