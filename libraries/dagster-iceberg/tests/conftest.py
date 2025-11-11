@@ -34,12 +34,20 @@ def _compose(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
         tmp_path_factory.getbasetemp().joinpath(WAREHOUSE_DIR).resolve()
     )
 
-    subprocess.run(
-        ["docker", "compose", "up", "--build", "--wait", "--no-recreate"],
-        cwd=COMPOSE_DIR,
-        check=True,
-        env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
-    )
+    try:
+        subprocess.run(
+            ["docker", "compose", "up", "--build", "--wait", "--no-recreate"],
+            cwd=COMPOSE_DIR,
+            check=True,
+            capture_output=True,
+            text=True,
+            env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
+        )
+    except subprocess.CalledProcessError as e:
+        print(f"Docker compose up failed with return code {e.returncode}")
+        print(f"STDOUT:\n{e.stdout}")
+        print(f"STDERR:\n{e.stderr}")
+        raise
     sleep(5)
     yield
     if os.getenv("TEST_NO_TEARDOWN") is None:
