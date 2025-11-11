@@ -234,8 +234,8 @@ class IcebergIOManager(ConfigurableIOManagerFactory):
                 context.add_output_metadata({
                     "upsert_options": {
                         "join_cols": ["id", "timestamp"],
-                        "when_matched_update_all": True,
-                        "when_not_matched_insert_all": True,
+                        "when_matched_update_all": False,
+                        "when_not_matched_insert_all": False,
                     }
                 })
                 return my_table
