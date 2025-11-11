@@ -151,6 +151,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
          Raises:
              ValueError: If upsert options are not provided when using upsert write mode.
         """
+        upsert_options = None
         if write_mode == WriteMode.upsert:
             # Output metadata takes precedence over definition metadata
             output_upsert_options = context.output_metadata.get("upsert_options", {})
@@ -171,8 +172,6 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
                 "upsert_options detected but write_mode=%s is not 'upsert'. Ignoring upsert_options.",
                 write_mode,
             )
-        else:
-            upsert_options = None
         return upsert_options
 
     def load_input(
