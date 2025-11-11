@@ -83,6 +83,7 @@ def table_writer(
         ValueError: Raised when schema update mode is set to 'error' and
             asset partition definitions on an existing table do not match
             the table partition spec.
+        ValueError: Raised when upsert_options are not provided when using upsert write mode
     """
     table_path = f"{table_slice.schema}.{table_slice.table}"
     base_properties = {
