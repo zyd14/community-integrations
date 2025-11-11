@@ -185,7 +185,9 @@ def table_writer(
         )
     elif write_mode == WriteMode.upsert:
         if upsert_options is None:
-            raise ValueError("upsert_options must be provided when using upsert write mode")
+            raise ValueError(
+                "upsert_options must be provided when using upsert write mode"
+            )
         upsert_to_table(
             table=table,
             data=data,
