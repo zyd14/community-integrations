@@ -207,10 +207,10 @@ The Iceberg I/O manager supports upsert operations, which allow you to update ex
 ### Upsert options
 Upsert options can be set at deployment time via asset definition metadata, or dynamically at runtime via output metadata. Upsert options set at runtime via `context.add_output_metadata()` take precedence over those set in definition metadata.
 
-Required:
+**Required**:
   - join_cols: list[str] - list of columns that make up the join key for the upsert operation
 
-Optional:
+**Optional**:
   - when_matched_update_all: bool - Whether to update rows in the target table that join with the dataframe being upserted (default True)
   - when_not_matched_insert_all: bool - Whether to insert all rows from the upsert dataframe that do not join with the target table (default True)
 
