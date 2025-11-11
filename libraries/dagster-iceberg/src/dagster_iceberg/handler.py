@@ -164,6 +164,8 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
                 raise ValueError(
                     "upsert_options must be provided when using upsert write mode, either in definition metadata or output metadata"
                 )
+        elif context.output_metadata.get("upsert_options") or context.definition_metadata.get("upsert_options"):
+            context.log.debug("upsert_options detected but write_mode=%s is not 'upsert'. Ignoring upsert_options.", write_mode)
         else:
             upsert_options = None
         return upsert_options
