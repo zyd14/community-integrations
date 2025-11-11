@@ -68,6 +68,14 @@ def table_writer(
         catalog (Catalog): PyIceberg catalogs supported by this library. See <https://py.iceberg.apache.org/configuration/#catalogs>.
         schema_update_mode (str): Whether to process schema updates on existing
             tables or error, value is either 'error' or 'update'
+        partition_spec_update_mode (str): Whether to process partition spec updates on existing
+            tables or error, value is either 'error' or 'update'
+        dagster_run_id (str): Dagster run ID
+        partition_field_name_prefix (str): Prefix to apply to the partition field names. This is required to avoid conflicts with schema field names when defining partitions using non-identity transforms in pyiceberg 0.10.0+. Defaults to 'part'.
+        dagster_partition_key (str | None): Dagster partition key
+        table_properties (dict[str, str] | None): Table properties
+        write_mode (WriteMode): Write mode to use, e.g. append, overwrite, upsert
+        upsert_options (UpsertOptions | None): Options to pass to pyiceberg's upsert operation, such as join columns and insert / update behavior
 
     Raises:
         ValueError: Raised when partition dimension metadata is not set on an
