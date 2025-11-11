@@ -5,6 +5,8 @@ import shutil
 import subprocess
 from collections.abc import Iterator
 from time import sleep
+import logging
+
 
 import psycopg2
 import pyarrow as pa
@@ -14,6 +16,8 @@ from dotenv import load_dotenv
 from pyiceberg.catalog import Catalog, load_catalog
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 COMPOSE_DIR = file_relative_path(__file__, "docker")
 
@@ -44,9 +48,9 @@ def _compose(tmp_path_factory: pytest.TempPathFactory) -> Iterator[None]:
             env={"WAREHOUSE_PATH": warehouse_path, **os.environ},
         )
     except subprocess.CalledProcessError as e:
-        print(f"Docker compose up failed with return code {e.returncode}")
-        print(f"STDOUT:\n{e.stdout}")
-        print(f"STDERR:\n{e.stderr}")
+        logger.error(f"Docker compose up failed with return code {e.returncode}")
+        logger.error(f"STDOUT:\n{e.stdout}")
+        logger.error(f"STDERR:\n{e.stderr}")
         raise
     sleep(5)
     yield
