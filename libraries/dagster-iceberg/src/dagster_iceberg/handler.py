@@ -153,20 +153,16 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         """
         if write_mode == WriteMode.upsert:
             # Output metadata takes precedence over definition metadata
-            output_upsert_options = context.output_metadata.get("upsert_options")
+            output_upsert_options = context.output_metadata.get("upsert_options", {})
             definition_upsert_options = context.definition_metadata.get(
-                "upsert_options"
+                "upsert_options", {}
             )
-            upsert_options = (
-                output_upsert_options
-                if output_upsert_options is not None
-                else definition_upsert_options
-            )
-            if upsert_options is not None:
+            upsert_options = {**definition_upsert_options, **output_upsert_options}
+            if upsert_options:
                 upsert_options = UpsertOptions.model_validate(upsert_options)
             else:
                 raise ValueError(
-                    "upsert_options must be provided when using upsert write mode"
+                    "upsert_options must be provided when using upsert write mode, either in definition metadata or output metadata"
                 )
         else:
             upsert_options = None
