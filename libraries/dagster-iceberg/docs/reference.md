@@ -204,7 +204,18 @@ Use asset metadata to set table properties:
 
 The Iceberg I/O manager supports upsert operations, which allow you to update existing rows and insert new rows in a single operation. This is useful for maintaining slowly changing dimensions or incrementally updating tables.
 
-To use upsert mode, set the `write_mode` to `"upsert"` and provide `upsert_options` in the asset metadata:
+### Upsert options
+Upsert options can be set at deployment time via asset definition metadata, or dynamically at runtime via output metadata. Upsert options set at runtime via `context.add_output_metadata()` take precedence over those set in definition metadata.
+
+Required:
+  - join_cols: list[str] - list of columns that make up the join key for the upsert operation
+
+Optional:
+  - when_matched_update_all: bool - Whether to update rows in the target table that join with the dataframe being upserted (default True)
+  - when_not_matched_insert_all: bool - Whether to insert all rows from the upsert dataframe that do not join with the target table (default True)
+
+
+To use upsert mode, set the `write_mode` to `"upsert"` and provide `upsert_options` in the asset or output metadata:
 
 ```python
 import pyarrow as pa
@@ -250,8 +261,8 @@ def user_profiles_dynamic(context: AssetExecutionContext) -> pa.Table:
         context.add_output_metadata({
             "upsert_options": {
                 "join_cols": ["id", "timestamp"],  # Join on multiple columns
-                "when_matched_update_all": True,
-                "when_not_matched_insert_all": True,
+                "when_matched_update_all": False,
+                "when_not_matched_insert_all": False,
             }
         })
 
@@ -261,8 +272,6 @@ def user_profiles_dynamic(context: AssetExecutionContext) -> pa.Table:
         "name": ["Alice", "Bob", "Charlie"],
     })
 ```
-
-The upsert operation uses PyIceberg's native upsert functionality to efficiently merge data. Upsert options set at runtime via `context.add_output_metadata()` take precedence over those set in definition metadata.
 
 ---
 
