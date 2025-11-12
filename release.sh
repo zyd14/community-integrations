@@ -24,11 +24,24 @@ fi
 # Find the file containing the `__version__ = "X.X.X"` definition.
 # Convert package name from kebab-case to snake_case (e.g., dagster-anthropic -> dagster_anthropic)
 package_underscored="${PACKAGE//-/_}"
-version_file="libraries/${PACKAGE}/${package_underscored}/__init__.py"
 
-# Verify the file exists
-if [ ! -f "$version_file" ]; then
-  echo "ERROR: Could not find ${version_file}"
+# Try different possible locations for the version file
+# Prefer version.py over __init__.py since some packages import __version__ from version.py
+if [ -f "libraries/${PACKAGE}/src/${package_underscored}/version.py" ]; then
+  version_file="libraries/${PACKAGE}/src/${package_underscored}/version.py"
+elif [ -f "libraries/${PACKAGE}/${package_underscored}/version.py" ]; then
+  version_file="libraries/${PACKAGE}/${package_underscored}/version.py"
+elif [ -f "libraries/${PACKAGE}/src/${package_underscored}/__init__.py" ]; then
+  version_file="libraries/${PACKAGE}/src/${package_underscored}/__init__.py"
+elif [ -f "libraries/${PACKAGE}/${package_underscored}/__init__.py" ]; then
+  version_file="libraries/${PACKAGE}/${package_underscored}/__init__.py"
+else
+  echo "ERROR: Could not find version file for ${PACKAGE}"
+  echo "Tried:"
+  echo "  - libraries/${PACKAGE}/src/${package_underscored}/version.py"
+  echo "  - libraries/${PACKAGE}/${package_underscored}/version.py"
+  echo "  - libraries/${PACKAGE}/src/${package_underscored}/__init__.py"
+  echo "  - libraries/${PACKAGE}/${package_underscored}/__init__.py"
   exit 1
 fi
 
