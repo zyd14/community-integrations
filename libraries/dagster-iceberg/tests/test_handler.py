@@ -9,7 +9,7 @@ from dagster._core.storage.db_io_manager import TableSlice
 from pyiceberg.catalog import Catalog
 from pyiceberg.table import Table as IcebergTable
 
-from dagster_iceberg._utils.io import DEFAULT_PARTITION_FIELD_NAME_PREFIX, WriteMode
+from dagster_iceberg._utils.io import DEFAULT_PARTITION_FIELD_NAME_PREFIX, UpsertOptions, WriteMode
 from dagster_iceberg.config import IcebergCatalogConfig
 from dagster_iceberg.handler import IcebergBaseTypeHandler
 
@@ -289,7 +289,7 @@ def test_handle_output_upsert_with_definition_metadata(
     mock_table_writer.assert_called_once()
     call_kwargs = mock_table_writer.call_args[1]
     assert call_kwargs["write_mode"] == WriteMode.upsert
-    assert call_kwargs["upsert_options"] == upsert_options
+    assert call_kwargs["upsert_options"] == UpsertOptions(**upsert_options)
 
 
 def test_handle_output_upsert_with_output_metadata_override(
@@ -332,7 +332,7 @@ def test_handle_output_upsert_with_output_metadata_override(
     mock_table_writer.assert_called_once()
     call_kwargs = mock_table_writer.call_args[1]
     assert call_kwargs["write_mode"] == WriteMode.upsert
-    assert call_kwargs["upsert_options"] == output_upsert_options
+    assert call_kwargs["upsert_options"] == UpsertOptions(**output_upsert_options)
 
 
 def test_upsert_actual_operation(
