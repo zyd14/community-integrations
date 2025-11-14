@@ -105,7 +105,6 @@ def table_writer(
             )
         partition_dimensions = table_slice.partition_dimensions
 
-    # TODO: may need to enable write.wap.enabled before doing branching stuff
     logger.debug("Partition dimensions: %s", partition_dimensions)
     if table_exists(catalog, table_path):
         logger.debug("Updating existing table")
@@ -218,7 +217,6 @@ def table_writer(
 
 def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: IcebergBranchConfig):
     """Creates a branch if it does not exist"""
-    # TODO: maybe we can defer committing until we actually write?
     # Check if branch already exists - refs() returns a dict with ref names as keys
     refs_dict = table.refs()
     logger.debug("Current table refs: %s", list(refs_dict.keys()))
