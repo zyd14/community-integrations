@@ -549,7 +549,6 @@ def test_write_from_any_to_zero_partition_spec_fields(
 class TestTableWriterBranching:
     """Tests for table branching functionality in table_writer"""
 
-
     def test_write_to_branch_with_no_snapshots_creates_branch_after_main_write(
         self, namespace: str, catalog: Catalog, data: pa.Table
     ):
@@ -643,7 +642,9 @@ class TestTableWriterBranching:
         assert len(main_data) == len(initial_data)
 
         # Verify the branch has the new data
-        branch_data_read = table.scan(snapshot_id=refs[branch_name].snapshot_id).to_arrow()
+        branch_data_read = table.scan(
+            snapshot_id=refs[branch_name].snapshot_id
+        ).to_arrow()
         assert len(branch_data_read) == len(branch_data)
 
     def test_write_to_existing_branch_with_snapshots(
@@ -714,7 +715,9 @@ class TestTableWriterBranching:
         assert len(main_data) == len(initial_data)
 
         # Verify the branch has both writes (overwrite + append)
-        branch_data_read = table.scan(snapshot_id=refs[branch_name].snapshot_id).to_arrow()
+        branch_data_read = table.scan(
+            snapshot_id=refs[branch_name].snapshot_id
+        ).to_arrow()
         assert len(branch_data_read) == len(branch_data_1) + len(branch_data_2)
 
     def test_write_to_branch_with_no_snapshots_and_error_flag_raises(

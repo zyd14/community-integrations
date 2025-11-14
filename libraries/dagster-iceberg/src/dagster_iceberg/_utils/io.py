@@ -174,9 +174,16 @@ def table_writer(
             branch_name = branch_config.branch_name
         else:
             if error_if_branch_and_no_snapshots:
-                raise ValueError(f"Table has no snapshots, cannot write to branch {branch_config.branch_name} until a snapshot is created on the {MAIN_BRANCH} branch. Please create a snapshot on the {MAIN_BRANCH} branch first.")
+                raise ValueError(
+                    f"Table has no snapshots, cannot write to branch {branch_config.branch_name} until a snapshot is created on the {MAIN_BRANCH} branch. Please create a snapshot on the {MAIN_BRANCH} branch first."
+                )
 
-            logger.warning("Table has no snapshots, cannot write to branch %s until a snapshot is created on the %s branch. Writing to main branch instead. Subsequent writes will be on the %s branch.", branch_config.branch_name, MAIN_BRANCH, branch_config.branch_name)
+            logger.warning(
+                "Table has no snapshots, cannot write to branch %s until a snapshot is created on the %s branch. Writing to main branch instead. Subsequent writes will be on the %s branch.",
+                branch_config.branch_name,
+                MAIN_BRANCH,
+                branch_config.branch_name,
+            )
             branch_name = MAIN_BRANCH
             first_table_write_and_branch_requested = True
     else:
@@ -188,7 +195,9 @@ def table_writer(
         else base_properties
     )
 
-    logger.debug("Writing %d rows with mode=%s to branch=%s", len(data), write_mode, branch_name)
+    logger.debug(
+        "Writing %d rows with mode=%s to branch=%s", len(data), write_mode, branch_name
+    )
     if write_mode == WriteMode.append:
         append_to_table(
             table=table,
@@ -211,11 +220,15 @@ def table_writer(
     # Handle case where user had branch config but no snapshots on table
     # This allows subsequent table reads to use the requested branch even though the first write was to main branch
     if first_table_write_and_branch_requested:
-        logger.debug("Creating branch %s after initial write", branch_config.branch_name)
+        logger.debug(
+            "Creating branch %s after initial write", branch_config.branch_name
+        )
         create_branch_if_not_exists(table=table, branch_config=branch_config)
 
 
-def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: IcebergBranchConfig):
+def create_branch_if_not_exists(
+    table: iceberg_table.Table, branch_config: IcebergBranchConfig
+):
     """Creates a branch if it does not exist"""
     # Check if branch already exists - refs() returns a dict with ref names as keys
     refs_dict = table.refs()
@@ -225,11 +238,22 @@ def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: Icebe
         # If table has no snapshot yet (newly created), we can't create a branch from it
         current_snapshot = table.current_snapshot()
         if current_snapshot is None:
-            logger.debug("Skipping branch creation for %s because table has no snapshots yet", branch_config.branch_name)
+            logger.debug(
+                "Skipping branch creation for %s because table has no snapshots yet",
+                branch_config.branch_name,
+            )
             return
 
-        logger.debug("Creating branch %s from snapshot %s", branch_config.branch_name, current_snapshot.snapshot_id)
-        ref_snapshot_id = branch_config.ref_snapshot_id if branch_config.ref_snapshot_id is not None else current_snapshot.snapshot_id
+        logger.debug(
+            "Creating branch %s from snapshot %s",
+            branch_config.branch_name,
+            current_snapshot.snapshot_id,
+        )
+        ref_snapshot_id = (
+            branch_config.ref_snapshot_id
+            if branch_config.ref_snapshot_id is not None
+            else current_snapshot.snapshot_id
+        )
         with table.manage_snapshots() as ms:
             ms.create_branch(
                 snapshot_id=ref_snapshot_id,
@@ -240,7 +264,9 @@ def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: Icebe
             )
         logger.debug("Branch %s created successfully", branch_config.branch_name)
     else:
-        logger.debug("Branch %s already exists, skipping creation", branch_config.branch_name)
+        logger.debug(
+            "Branch %s already exists, skipping creation", branch_config.branch_name
+        )
 
 
 def get_expression_row_filter(
@@ -389,7 +415,12 @@ class IcebergTableAppenderWithRetry(IcebergOperationWithRetry):
     ):
         if snapshot_properties is None:
             snapshot_properties = {}
-        self.logger.debug("Appending %d rows to table %s (branch=%s)", len(data), self.table.name(), branch_name)
+        self.logger.debug(
+            "Appending %d rows to table %s (branch=%s)",
+            len(data),
+            self.table.name(),
+            branch_name,
+        )
         self.table.append(
             df=data,
             snapshot_properties=snapshot_properties,
@@ -397,7 +428,10 @@ class IcebergTableAppenderWithRetry(IcebergOperationWithRetry):
         )
         # Refresh table metadata to see the new snapshot
         self.table = self.table.refresh()
-        self.logger.debug("Append completed, current snapshot after refresh: %s", self.table.current_snapshot())
+        self.logger.debug(
+            "Append completed, current snapshot after refresh: %s",
+            self.table.current_snapshot(),
+        )
 
 
 class IcebergTableOverwriterWithRetry(IcebergOperationWithRetry):
@@ -408,7 +442,12 @@ class IcebergTableOverwriterWithRetry(IcebergOperationWithRetry):
         snapshot_properties: dict[str, str] | None = None,
         branch_name: str | None = None,
     ):
-        self.logger.debug("Overwriting %d rows to table %s (branch=%s)", len(data), self.table.name(), branch_name)
+        self.logger.debug(
+            "Overwriting %d rows to table %s (branch=%s)",
+            len(data),
+            self.table.name(),
+            branch_name,
+        )
         self.table.overwrite(
             df=data,
             overwrite_filter=overwrite_filter,
@@ -419,4 +458,7 @@ class IcebergTableOverwriterWithRetry(IcebergOperationWithRetry):
         )
         # Refresh table metadata to see the new snapshot
         self.table = self.table.refresh()
-        self.logger.debug("Overwrite completed, current snapshot after refresh: %s", self.table.current_snapshot())
+        self.logger.debug(
+            "Overwrite completed, current snapshot after refresh: %s",
+            self.table.current_snapshot(),
+        )
