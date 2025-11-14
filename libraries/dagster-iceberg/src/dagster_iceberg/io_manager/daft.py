@@ -37,7 +37,11 @@ class _DaftIcebergTypeHandler(_handler.IcebergBaseTypeHandler[da.DataFrame]):
             ).partition_dimensions_to_filters()
             row_filter = " AND ".join(expressions)
         ddf = da.read_iceberg(table, snapshot_id=snapshot_id)
-        return ddf.select(selected_fields).where(row_filter) if row_filter is not None else ddf.select(selected_fields)
+        return (
+            ddf.select(selected_fields).where(row_filter)
+            if row_filter is not None
+            else ddf.select(selected_fields)
+        )
 
     def to_arrow(self, obj: da.DataFrame) -> pa.Table:
         return obj.to_arrow()
