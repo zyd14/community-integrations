@@ -113,6 +113,8 @@ ignore = [
 cache_dir = ".cache/pytest"
 filterwarnings = [
     "ignore:.*:dagster_shared.utils.warnings.PreviewWarning",
+    "ignore:.*:UserWarning",
+    "ignore:.*:dagster._utils.warnings.BetaWarning",
 ]
 
 [tool.pyright]
