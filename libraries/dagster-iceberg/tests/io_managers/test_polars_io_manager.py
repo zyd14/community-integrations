@@ -15,6 +15,7 @@ from dagster import (
     materialize,
 )
 from pyiceberg.catalog import Catalog
+from pyiceberg.table.refs import SnapshotRefType
 
 from dagster_iceberg.config import IcebergBranchConfig, IcebergCatalogConfig, UpsertOptions
 from dagster_iceberg.io_manager.polars import PolarsIcebergIOManager
@@ -681,4 +682,4 @@ class TestIcebergIOManagerBranching:
         assert "test" in refs, (
             f"Expected 'test' branch in refs, but got: {list(refs.keys())}"
         )
-        assert refs["test"].snapshot_ref.name == "test"
+        assert refs["test"].snapshot_ref_type == SnapshotRefType.BRANCH
