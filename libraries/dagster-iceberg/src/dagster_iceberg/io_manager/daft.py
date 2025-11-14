@@ -28,7 +28,6 @@ class _DaftIcebergTypeHandler(_handler.IcebergBaseTypeHandler[da.DataFrame]):
         selected_fields: str = (
             ",".join(table_slice.columns) if table_slice.columns is not None else "*"
         )
-        # TODO(zach): try to refactor PredicateMappers to build Expression lists instead of strings, in the same way the DagsterPartitionToIcebergExpressionMapper works
         row_filter: str | None = None
         if table_slice.partition_dimensions:
             expressions = DagsterPartitionToDaftSqlPredicateMapper(
