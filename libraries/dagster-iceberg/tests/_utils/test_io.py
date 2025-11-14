@@ -342,7 +342,7 @@ def test_table_writer_multi_partitioned_update_partition_spec_change(
     )
     path_to_dwh = (
         plb.Path(warehouse_path)
-        / f"{namespace}.db"
+        / f"{namespace}"
         / table_
         / "data"
         / "part_timestamp=2023-01-01-00"
