@@ -16,7 +16,6 @@ class IcebergBranchConfig(Config):
     See the `Branches section <https://py.iceberg.apache.org/configuration/#branches>`_
     for configuration options.
     """
-    # TODO: verify the descriptions correctly reflect how these parameters work
     ref_snapshot_id: int | None = Field(description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used.")
     branch_name: str = Field(default=MAIN_BRANCH, description="Name of the branch to use. If the specified branch does not yet exist it will be created.")
     max_snapshot_age_ms: int | None = Field(description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted.")
