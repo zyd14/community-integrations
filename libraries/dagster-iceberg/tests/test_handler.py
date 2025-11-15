@@ -11,7 +11,7 @@ from pyiceberg.table import Table as IcebergTable
 
 from dagster_iceberg._utils.config import DEFAULT_PARTITION_FIELD_NAME_PREFIX
 from dagster_iceberg._utils.io import WriteMode
-from dagster_iceberg.config import IcebergCatalogConfig
+from dagster_iceberg.config import IcebergBranchConfig, IcebergCatalogConfig
 from dagster_iceberg.handler import IcebergBaseTypeHandler
 
 
@@ -135,6 +135,8 @@ def test_handle_output_metadata_passing(
         table_properties=expected_table_properties,
         write_mode=expected_write_mode,
         partition_field_name_prefix="part",
+        branch_config=IcebergBranchConfig(),
+        error_if_branch_and_no_snapshots=False,
     )
 
 
