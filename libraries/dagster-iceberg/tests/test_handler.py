@@ -117,7 +117,11 @@ def test_handle_output_metadata_passing(
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
-        resource_config={"config": IcebergCatalogConfig(properties={"uri": "sqlite:///:memory:"}).model_dump()}
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
 
     handler = MockTypeHandler()
