@@ -98,18 +98,19 @@ def test_handle_output_metadata_passing(
 ):
     """Test that metadata from definition and output contexts is passed correctly to table_writer. Useful for testing overrides or calculated values"""
     # Test that output metadata overrides definition metadata for write mode
-    definition_metadata = {
-        "write_mode": "overwrite",
-        "partition_spec_update_mode": "error",
-        "schema_update_mode": "error",
-        "table_properties": {"prop1": "value1"},
-        "partition_key": None,
-    }
     expected_write_mode = WriteMode.overwrite
     expected_partition_spec_mode = "error"
     expected_schema_mode = "error"
     expected_table_properties = {"prop1": "value1"}
     expected_partition_key = None
+
+    definition_metadata = {
+        "write_mode": expected_write_mode.value,
+        "partition_spec_update_mode": expected_partition_spec_mode,
+        "schema_update_mode": expected_schema_mode,
+        "table_properties": expected_table_properties,
+        "partition_key": expected_partition_key,
+    }
 
     run_id = str(uuid4())
     context = build_output_context(
