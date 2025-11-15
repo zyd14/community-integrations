@@ -19,7 +19,7 @@ class IcebergBranchConfig(Config):
 
     ref_snapshot_id: int | None = Field(
         default=None,
-        description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used."
+        description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used.",
     )
     branch_name: str = Field(
         default=MAIN_BRANCH,
