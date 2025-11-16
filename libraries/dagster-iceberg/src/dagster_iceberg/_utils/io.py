@@ -5,7 +5,7 @@ from typing import Final
 
 import pyarrow as pa
 from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from pyiceberg import __version__ as pyiceberg_version
 from pyiceberg import expressions as E
 from pyiceberg import table as iceberg_table
@@ -40,6 +40,8 @@ class UpsertOptions(BaseModel):
     join_cols: list[str]
     when_matched_update_all: bool = True
     when_not_matched_insert_all: bool = True
+
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
 
 DEFAULT_WRITE_MODE: Final[WriteMode] = WriteMode.overwrite
