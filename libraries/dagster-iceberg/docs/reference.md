@@ -208,11 +208,11 @@ The Iceberg I/O manager supports upsert operations, which allow you to update ex
 Upsert options can be set at deployment time via asset definition metadata, or dynamically at runtime via output metadata. Upsert options set at runtime via `context.add_output_metadata()` take precedence over those set in definition metadata.
 
 **Required**:
-  - join_cols: list[str] - list of columns that make up the join key for the upsert operation
+  - **join_cols**: list[str] - list of columns that make up the join key for the upsert operation
 
 **Optional**:
-  - when_matched_update_all: bool - Whether to update rows in the target table that join with the dataframe being upserted (default True)
-  - when_not_matched_insert_all: bool - Whether to insert all rows from the upsert dataframe that do not join with the target table (default True)
+  - **when_matched_update_all**: bool - Whether to update rows in the target table that join with the dataframe being upserted (default True)
+  - **when_not_matched_insert_all**: bool - Whether to insert all rows from the upsert dataframe that do not join with the target table (default True)
 
 
 To use upsert mode, set the `write_mode` to `"upsert"` and provide `upsert_options` in the asset or output metadata:
@@ -271,6 +271,31 @@ def user_profiles_dynamic(context: AssetExecutionContext) -> pa.Table:
         "timestamp": ["2024-01-01", "2024-01-01", "2024-01-01"],
         "name": ["Alice", "Bob", "Charlie"],
     })
+```
+
+You can use the `UpsertOptions` `BaseModel` subclass to represent upsert options metadata to provide deployment-time type validation:
+
+```python
+from dagster_iceberg._utils.io import UpsertOptions
+
+@asset(
+    metadata={
+        "write_mode": "upsert",
+        "upsert_options": UpsertOptions(
+            join_cols=["id", "timestamp"],
+            when_matched_update_all=True,
+            when_not_matched_insert_all=True,
+        )
+    }
+)
+def my_table_typed_upsert(context: AssetExecutionContext, my_table: pa.Table):
+    context.add_output_metadata({"upsert_options": UpsertOptions(
+                join_cols=["id", "timestamp"],
+                when_matched_update_all=True,
+                when_not_matched_insert_all=False,
+            )
+        }
+    )
 ```
 
 ---
