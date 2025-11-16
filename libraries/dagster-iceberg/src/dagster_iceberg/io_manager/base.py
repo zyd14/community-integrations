@@ -239,7 +239,6 @@ class IcebergIOManager(ConfigurableIOManagerFactory):
                     }
                 })
                 return my_table
-
     """
 
     name: str = Field(description="The name of the iceberg catalog.")

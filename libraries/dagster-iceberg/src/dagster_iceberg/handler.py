@@ -151,13 +151,13 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
          Raises:
              ValueError: If upsert options are not provided when using upsert write mode.
         """
+
         def parse_upsert_options(metadata: dict) -> dict | None:
             if isinstance(metadata, UpsertOptions):
                 return metadata.model_dump()
-            elif isinstance(metadata, dict):
+            if isinstance(metadata, dict):
                 return metadata
-            else:
-                raise ValueError(f"Invalid upsert options type: {type(metadata)}")
+            raise ValueError(f"Invalid upsert options type: {type(metadata)}")
 
         upsert_options = None
         if write_mode == WriteMode.upsert:
