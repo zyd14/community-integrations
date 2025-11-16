@@ -276,7 +276,7 @@ def user_profiles_dynamic(context: AssetExecutionContext) -> pa.Table:
 You can use the `UpsertOptions` `BaseModel` subclass to represent upsert options metadata to provide deployment-time type validation:
 
 ```python
-from dagster_iceberg._utils.io import UpsertOptions
+from dagster_iceberg.config import UpsertOptions
 
 @asset(
     metadata={

@@ -4,7 +4,11 @@ from dagster import Config
 from dagster._annotations import public
 from pydantic import Field, model_validator
 
-from dagster_iceberg._utils import DEFAULT_PARTITION_FIELD_NAME_PREFIX, preview
+from dagster_iceberg._utils import (
+    DEFAULT_PARTITION_FIELD_NAME_PREFIX,
+    UpsertOptions,  # noqa: F401 - can be used for type validation in asset metadata
+    preview,
+)
 
 
 @public
