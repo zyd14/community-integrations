@@ -1,9 +1,12 @@
 import datetime
 
+from dagster_iceberg._utils.io import UpsertOptions
 import polars as pl
+import polars.testing as pl_testing
 import pytest
 from dagster import (
     AssetExecutionContext,
+    Config,
     DailyPartitionsDefinition,
     HourlyPartitionsDefinition,
     MultiPartitionsDefinition,
@@ -70,6 +73,10 @@ def asset_multi_partitioned_append_mode_table_identifier(namespace: str) -> str:
 def asset_multi_partitioned_overwrite_mode_table_identifier(namespace: str) -> str:
     return f"{namespace}.multi_partitioned_overwrite_mode"
 
+
+@pytest.fixture
+def asset_upsert_identifier(namespace: str) -> str:
+    return f"{namespace}.upsert_asset"
 
 @asset(
     key_prefix=["my_schema"],
@@ -248,7 +255,51 @@ def multi_partitioned_overwrite_mode(context: AssetExecutionContext) -> pl.DataF
     )
 
 
+class UpsertRows(Config):
+    a: list[int]
+    b: list[int]
+
+
+@asset(key_prefix=["my_schema"], metadata={"write_mode": "upsert", "upsert_options": UpsertOptions(join_cols=["a"], when_matched_update_all=True, when_not_matched_insert_all=True)})
+def upsert_asset(context: AssetExecutionContext, config: UpsertRows) -> pl.DataFrame:
+    return pl.from_dict({"a": config.a, "b": config.b})
+
+
 class TestIcebergIOManager:
+
+    def test_upsert_with_update_and_insert_works(self, catalog: Catalog, io_manager: PolarsIcebergIOManager, asset_upsert_identifier: str):
+        resource_defs = {"io_manager": io_manager}
+        res = materialize([upsert_asset], resources=resource_defs, run_config={
+            "ops": {
+                "my_schema__upsert_asset": {
+                    "config": UpsertRows(a=[1, 2, 3, 4], b=[4, 5, 6, 7]).model_dump()
+                }
+            }
+        })
+        assert res.success
+
+        table = catalog.load_table(asset_upsert_identifier)
+        out_df = table.scan().to_arrow()
+        assert out_df["a"].to_pylist() == [1, 2, 3, 4]
+        assert out_df["b"].to_pylist() == [4, 5, 6, 7]
+
+        res2 = materialize([upsert_asset], resources=resource_defs, run_config={
+            "ops": {
+                "my_schema__upsert_asset": {
+                    "config": UpsertRows(a=[1, 2, 3, 5], b=[4, 8, 12, 16]).model_dump()
+                },
+            }
+        })
+        assert res2.success
+
+        table_with_upsert = catalog.load_table(asset_upsert_identifier)
+        out_df2 = table_with_upsert.scan().to_arrow()
+        pdf = pl.from_arrow(out_df2)
+        expected_pdf = pl.from_dict({"a": [1, 2, 3, 4, 5], "b": [4, 8, 12, 7, 16]})
+        pl_testing.assert_frame_equal(
+            pdf.sort("a"), expected_pdf.sort("a")
+        )
+
     def test_output_input_loading_for_asset_dependencies_with_overwrite(
         self,
         asset_b_df_table_identifier: str,
