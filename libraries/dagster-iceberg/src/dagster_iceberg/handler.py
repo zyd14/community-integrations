@@ -70,6 +70,8 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             context, write_mode_with_output_override
         )
 
+        branch_config = context.resource_config.get("branch_config", None)
+
         table_writer(
             table_slice=table_slice,
             data=self.to_arrow(obj),
@@ -82,6 +84,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             ),
             table_properties=table_properties_usr,
             write_mode=write_mode_with_output_override,
+            branch_config=branch_config,
             partition_field_name_prefix=partition_field_name_prefix,
             upsert_options=upsert_options,
         )
