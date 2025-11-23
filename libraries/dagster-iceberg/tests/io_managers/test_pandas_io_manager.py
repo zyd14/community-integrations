@@ -291,4 +291,6 @@ def test_iceberg_io_manager_with_branch(
     refs = table.refs()
 
     # Verify the branch was created
-    assert "test_branch" in refs, f"Expected 'test_branch' in refs, but got: {list(refs.keys())}"
+    assert "test_branch" in refs, (
+        f"Expected 'test_branch' in refs, but got: {list(refs.keys())}"
+    )

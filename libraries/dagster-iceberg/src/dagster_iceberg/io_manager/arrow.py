@@ -38,7 +38,11 @@ class _PyArrowIcebergTypeHandler(_handler.IcebergBaseTypeHandler[ArrowTypes]):
         else:
             row_filter = ibt.ALWAYS_TRUE
 
-        table_scan = table.scan(row_filter=row_filter, selected_fields=selected_fields, snapshot_id=snapshot_id)
+        table_scan = table.scan(
+            row_filter=row_filter,
+            selected_fields=selected_fields,
+            snapshot_id=snapshot_id,
+        )
 
         return (
             table_scan.to_arrow()

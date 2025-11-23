@@ -94,7 +94,9 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         table_ = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
 
-        current_snapshot = cast("Snapshot", table_.snapshot_by_name(config.branch_config.branch_name))
+        current_snapshot = cast(
+            "Snapshot", table_.snapshot_by_name(config.branch_config.branch_name)
+        )
 
         metadata = {
             "table_columns": MetadataValue.table_schema(
@@ -194,13 +196,17 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             )
         return upsert_options
 
-    def _get_snapshot(self, context: OutputContext, table: ibt.Table) -> "Snapshot | None":
+    def _get_snapshot(
+        self, context: OutputContext, table: ibt.Table
+    ) -> "Snapshot | None":
         # Get branch_config from nested config object
         config = IcebergCatalogConfig.model_validate(context.resource_config["config"])
         snapshot = table.snapshot_by_name(config.branch_config.branch_name)
         table_path = ".".join(table.name())
         if snapshot is None:
-            raise ValueError(f"Branch {config.branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table")
+            raise ValueError(
+                f"Branch {config.branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table"
+            )
         return snapshot
 
     def load_input(

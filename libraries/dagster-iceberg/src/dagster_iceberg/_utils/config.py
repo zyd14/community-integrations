@@ -16,11 +16,23 @@ class IcebergBranchConfig(Config):
     See the `Branches section <https://py.iceberg.apache.org/configuration/#branches>`_
     for configuration options.
     """
-    ref_snapshot_id: int | None = Field(description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used.")
-    branch_name: str = Field(default=MAIN_BRANCH, description="Name of the branch to use. If the specified branch does not yet exist it will be created.")
-    max_snapshot_age_ms: int | None = Field(description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted.")
-    min_snapshots_to_keep: int | None = Field(description="Minimum number of snapshots to keep. If the number of snapshots exceeds this number, the oldest snapshot will be deleted.")
-    max_ref_age_ms: int | None = Field(description="Maximum age of a reference in milliseconds. If a reference is older than this age, it will be deleted.")
+
+    ref_snapshot_id: int | None = Field(
+        description="Snapshot ID of the reference to use as a base for the branch. If the specified snapshot ID does not exist an error will be raised. If not specified, the current snapshot will be used."
+    )
+    branch_name: str = Field(
+        default=MAIN_BRANCH,
+        description="Name of the branch to use. If the specified branch does not yet exist it will be created.",
+    )
+    max_snapshot_age_ms: int | None = Field(
+        description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted."
+    )
+    min_snapshots_to_keep: int | None = Field(
+        description="Minimum number of snapshots to keep. If the number of snapshots exceeds this number, the oldest snapshot will be deleted."
+    )
+    max_ref_age_ms: int | None = Field(
+        description="Maximum age of a reference in milliseconds. If a reference is older than this age, it will be deleted."
+    )
 
 
 @public
@@ -62,8 +74,14 @@ class IcebergCatalogConfig(Config):
     """
 
     properties: dict[str, Any]
-    branch_config: IcebergBranchConfig = Field(default_factory=IcebergBranchConfig, description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.")
-    error_if_branch_and_no_snapshots: bool = Field(default=False, description="Whether to error if a branch is specified but no snapshots exist on the table. If False, a warning will be logged and the write will proceed to the main branch.")
+    branch_config: IcebergBranchConfig = Field(
+        default_factory=IcebergBranchConfig,
+        description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.",
+    )
+    error_if_branch_and_no_snapshots: bool = Field(
+        default=False,
+        description="Whether to error if a branch is specified but no snapshots exist on the table. If False, a warning will be logged and the write will proceed to the main branch.",
+    )
 
     partition_field_name_prefix: str = Field(
         default=DEFAULT_PARTITION_FIELD_NAME_PREFIX,
@@ -75,4 +93,3 @@ class IcebergCatalogConfig(Config):
         if self.partition_field_name_prefix == "":
             raise ValueError("partition_field_name_prefix cannot be an empty string")
         return self
-
