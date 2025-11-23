@@ -1,9 +1,11 @@
 from collections.abc import Sequence
+from typing import TYPE_CHECKING
 
 try:
     import daft as da
 except ImportError as e:
     raise ImportError("Please install dagster-iceberg with the 'daft' extra.") from e
+
 import pyarrow as pa
 from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
@@ -14,6 +16,9 @@ from dagster_iceberg import io_manager as _io_manager
 from dagster_iceberg._utils import DagsterPartitionToDaftSqlPredicateMapper, preview
 
 
+if TYPE_CHECKING:
+    from pyiceberg.table.snapshots import Snapshot
+
 class _DaftIcebergTypeHandler(_handler.IcebergBaseTypeHandler[da.DataFrame]):
     """Type handler that converts data between Iceberg tables and Daft DataFrames."""
 
@@ -22,10 +27,12 @@ class _DaftIcebergTypeHandler(_handler.IcebergBaseTypeHandler[da.DataFrame]):
         table: ibt.Table,
         table_slice: TableSlice,
         target_type: type[da.DataFrame],
+        snapshot: "Snapshot | None" = None,
     ) -> da.DataFrame:
         selected_fields: str = (
             ",".join(table_slice.columns) if table_slice.columns is not None else "*"
         )
+        # TODO: try to refactor PredicateMappers to build Expression lists instead of strings, in the same way the DagsterPartitionToIcebergExpressionMapper works
         row_filter: str | None = None
         if table_slice.partition_dimensions:
             expressions = DagsterPartitionToDaftSqlPredicateMapper(
@@ -35,7 +42,8 @@ class _DaftIcebergTypeHandler(_handler.IcebergBaseTypeHandler[da.DataFrame]):
             ).partition_dimensions_to_filters()
             row_filter = " AND ".join(expressions)
 
-        ddf = table.to_daft()  # noqa: F841, `daft.sql` detects `daft.DataFrame` objects
+        snapshot_id = snapshot.snapshot_id if snapshot is not None else None
+        ddf = table.scan(snapshot_id=snapshot_id).to_daft()  # noqa: F841, `daft.sql` detects `daft.DataFrame` objects
 
         stmt = f"SELECT {selected_fields} FROM ddf"
         if row_filter is not None:
