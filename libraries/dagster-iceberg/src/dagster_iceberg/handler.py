@@ -72,21 +72,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         )
 
         # Get branch_config from nested config object
-        config = context.resource_config.get("config")
-        branch_config = None
-        if config is not None:
-            if hasattr(config, "branch_config"):
-                branch_config_raw = config.branch_config
-            else:
-                branch_config_raw = config.get("branch_config", None)
-            
-            # Convert dict to IcebergBranchConfig if needed
-            if branch_config_raw is not None:
-                if isinstance(branch_config_raw, dict):
-                    from dagster_iceberg.config import IcebergBranchConfig
-                    branch_config = IcebergBranchConfig(**branch_config_raw)
-                else:
-                    branch_config = branch_config_raw
+        branch_config = IcebergBranchConfig(**context.resource_config["config"]["branch_config"])
 
         table_writer(
             table_slice=table_slice,
@@ -95,6 +81,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             partition_spec_update_mode=partition_spec_update_mode,
             schema_update_mode=schema_update_mode,
             dagster_run_id=context.run_id,
+            branch_config=branch_config,
             dagster_partition_key=(
                 context.partition_key if context.has_asset_partitions else None
             ),
@@ -107,7 +94,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         table_ = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
 
-        current_snapshot = cast("Snapshot", table_.current_snapshot())
+        current_snapshot = cast("Snapshot", table_.snapshot_by_name(branch_config.branch_name))
 
         metadata = {
             "table_columns": MetadataValue.table_schema(
@@ -118,11 +105,12 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
                     ],
                 ),
             ),
+            "branch_name": branch_config.branch_name,
         }
         # Add snapshot metadata if available
         if current_snapshot is not None:
             metadata.update(current_snapshot.model_dump())
-        
+
         context.add_output_metadata(metadata)
 
     def _get_partition_field_name_prefix(self, context: OutputContext) -> str:
@@ -208,27 +196,11 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
     def _get_snapshot(self, context: OutputContext, table: ibt.Table) -> "Snapshot | None":
         # Get branch_config from nested config object
-        config = context.resource_config.get("config")
-        branch_config = None
-        if config is not None:
-            if hasattr(config, "branch_config"):
-                branch_config_raw = config.branch_config
-            else:
-                branch_config_raw = config.get("branch_config", None)
-            
-            # Convert dict to IcebergBranchConfig if needed
-            if branch_config_raw is not None:
-                if isinstance(branch_config_raw, dict):
-                    from dagster_iceberg.config import IcebergBranchConfig
-                    branch_config = IcebergBranchConfig(**branch_config_raw)
-                else:
-                    branch_config = branch_config_raw
-        
-        branch_name = branch_config.branch_name if branch_config is not None else None
-        snapshot = table.snapshot_by_name(branch_name) if branch_name is not None else None
+        branch_config = IcebergBranchConfig(**context.resource_config["config"]["branch_config"])
+        snapshot = table.snapshot_by_name(branch_config.branch_name)
         table_path = ".".join(table.name())
-        if branch_name and snapshot is None:
-            raise ValueError(f"Branch {branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table")
+        if snapshot is None:
+            raise ValueError(f"Branch {branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table")
         return snapshot
 
     def load_input(

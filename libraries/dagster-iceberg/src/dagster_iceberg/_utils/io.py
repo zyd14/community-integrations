@@ -18,7 +18,6 @@ from pyiceberg.exceptions import (
 from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.schema import Schema
 
-from dagster_iceberg.config import IcebergBranchConfig
 from dagster_iceberg._utils.partitions import (
     DagsterPartitionToIcebergExpressionMapper,
     update_table_partition_spec,
@@ -26,7 +25,10 @@ from dagster_iceberg._utils.partitions import (
 from dagster_iceberg._utils.properties import update_table_properties
 from dagster_iceberg._utils.retries import IcebergOperationWithRetry
 from dagster_iceberg._utils.schema import update_table_schema
+from dagster_iceberg.config import IcebergBranchConfig
 from dagster_iceberg.version import __version__ as dagster_iceberg_version
+
+from pyiceberg.table.refs import MAIN_BRANCH
 
 logger = logging.getLogger("dagster_iceberg._utils.io")
 
@@ -56,12 +58,12 @@ def table_writer(
     schema_update_mode: str,
     partition_spec_update_mode: str,
     dagster_run_id: str,
+    branch_config: IcebergBranchConfig,
     partition_field_name_prefix: str = DEFAULT_PARTITION_FIELD_NAME_PREFIX,
     dagster_partition_key: str | None = None,
     table_properties: dict[str, str] | None = None,
     write_mode: WriteMode = DEFAULT_WRITE_MODE,
     upsert_options: UpsertOptions | None = None,
-    branch_config: IcebergBranchConfig | None = None,
 ) -> None:
     """Writes data to an iceberg table
 
@@ -183,16 +185,16 @@ def table_writer(
 
     # For newly created tables, PyIceberg requires the first write to go to main branch
     # We'll create the branch after the first write
-    table_has_snapshots = table.current_snapshot() is not None
-    if branch_config is not None:
+    if branch_config.branch_name != MAIN_BRANCH:
+        table_has_snapshots = table.current_snapshot() is not None
         if table_has_snapshots:
             create_branch_if_not_exists(table=table, branch_config=branch_config)
             branch_name = branch_config.branch_name
         else:
-            # First write must go to main branch for new tables
-            branch_name = None
+            logger.warning("Table has no snapshots, cannot write to branch %s until a snapshot is created on the %s branch. Writing to main branch instead. Subsequent writes will be on the %s branch.", branch_config.branch_name, MAIN_BRANCH, branch_config.branch_name)
+            branch_name = MAIN_BRANCH
     else:
-        branch_name = None
+        branch_name = MAIN_BRANCH
 
     snapshot_properties = (
         base_properties | {"dagster-partition-key": dagster_partition_key}
@@ -228,16 +230,8 @@ def table_writer(
         )
     else:
         raise ValueError(f"Unexpected write mode: {write_mode}")
-    
+
     logger.debug("Write completed successfully")
-    # TODO: let's maybeq just throw an error if the table has no snapshots and we're trying to write to a branch
-    # Create branch after write for newly created tables
-    if branch_config is not None and not table_has_snapshots:
-        logger.debug("Reloading table to create branch after initial write")
-        # Reload table to get the latest state with the new snapshot
-        table = catalog.load_table(f"{table_slice.schema}.{table_slice.table}")
-        logger.debug("Table reloaded, current snapshot: %s", table.current_snapshot())
-        create_branch_if_not_exists(table=table, branch_config=branch_config)
 
 
 def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: IcebergBranchConfig):
@@ -246,14 +240,14 @@ def create_branch_if_not_exists(table: iceberg_table.Table, branch_config: Icebe
     # Check if branch already exists - refs() returns a dict with ref names as keys
     refs_dict = table.refs()
     logger.debug("Current table refs: %s", list(refs_dict.keys()))
-    
+
     if branch_config.branch_name not in refs_dict:
         # If table has no snapshot yet (newly created), we can't create a branch from it
         current_snapshot = table.current_snapshot()
         if current_snapshot is None:
             logger.debug("Skipping branch creation for %s because table has no snapshots yet", branch_config.branch_name)
             return
-        
+
         logger.debug("Creating branch %s from snapshot %s", branch_config.branch_name, current_snapshot.snapshot_id)
         ref_snapshot_id = branch_config.ref_snapshot_id if branch_config.ref_snapshot_id is not None else current_snapshot.snapshot_id
         with table.manage_snapshots() as ms:
