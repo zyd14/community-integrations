@@ -5,3 +5,5 @@ from dagster_iceberg.version import __version__ as __version__
 DagsterLibraryRegistry.register(
     "dagster-iceberg", __version__, is_dagster_package=False
 )
+
+from dagster_iceberg import config

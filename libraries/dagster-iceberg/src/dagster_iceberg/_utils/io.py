@@ -19,6 +19,10 @@ from pyiceberg.partitioning import PartitionSpec
 from pyiceberg.schema import Schema
 from pyiceberg.table.refs import MAIN_BRANCH
 
+from dagster_iceberg._utils.config import (
+    DEFAULT_PARTITION_FIELD_NAME_PREFIX,
+    IcebergBranchConfig,
+)
 from dagster_iceberg._utils.partitions import (
     DagsterPartitionToIcebergExpressionMapper,
     update_table_partition_spec,
@@ -26,7 +30,6 @@ from dagster_iceberg._utils.partitions import (
 from dagster_iceberg._utils.properties import update_table_properties
 from dagster_iceberg._utils.retries import IcebergOperationWithRetry
 from dagster_iceberg._utils.schema import update_table_schema
-from dagster_iceberg.config import IcebergBranchConfig
 from dagster_iceberg.version import __version__ as dagster_iceberg_version
 
 logger = logging.getLogger("dagster_iceberg._utils.io")
@@ -47,7 +50,6 @@ class UpsertOptions(BaseModel):
 
 
 DEFAULT_WRITE_MODE: Final[WriteMode] = WriteMode.overwrite
-DEFAULT_PARTITION_FIELD_NAME_PREFIX: Final[str] = "part"
 
 
 def table_writer(

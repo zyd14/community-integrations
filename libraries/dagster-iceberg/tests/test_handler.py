@@ -9,8 +9,9 @@ from dagster._core.storage.db_io_manager import TableSlice
 from pyiceberg.catalog import Catalog
 from pyiceberg.table import Table as IcebergTable
 
-from dagster_iceberg._utils.io import (
-    DEFAULT_PARTITION_FIELD_NAME_PREFIX,
+from dagster_iceberg._utils.config import (
+    DEFAULT_PARTITION_FIELD_NAME_PREFIX
+from dagster_iceberg._utils.io import
     UpsertOptions,
     WriteMode,
 )

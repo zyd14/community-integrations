@@ -22,7 +22,7 @@ from dagster_iceberg._utils import (
     table_writer,
 )
 from dagster_iceberg._utils.io import UpsertOptions
-from dagster_iceberg.config import IcebergCatalogConfig, IcebergCatalogConfig
+from dagster_iceberg.config import IcebergCatalogConfig
 
 if TYPE_CHECKING:
     from pyiceberg.table.snapshots import Snapshot
