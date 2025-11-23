@@ -43,6 +43,10 @@ jobs:
       - name: Type check
         working-directory: ${{ inputs.working_directory }}
         run: uv run pyright
+      
+      - name: Start docker compose
+        working-directory: ./libraries/dagster-iceberg/docker
+        run: WAREHOUSE_PATH=./tmpwarehouse2 docker compose up --build --wait
 
       - name: Test
         working-directory: ${{ inputs.working_directory }}
