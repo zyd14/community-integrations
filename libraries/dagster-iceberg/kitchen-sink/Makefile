@@ -1,5 +1,5 @@
 up:
-	docker compose up --build --wait
+	docker compose up --build --wait --no-recreate
 
 catalog: up
 	python -c 'from pyiceberg.catalog import load_catalog; catalog = load_catalog("rest", **{"type": "rest", "uri": "http://localhost:8181", "s3.endpoint": "http://localhost:9000", "s3.access-key-id": "admin", "s3.secret-access-key": "password"}); catalog.create_namespace_if_not_exists("nyc")'
