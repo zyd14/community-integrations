@@ -102,7 +102,9 @@ class IcebergCatalogConfig(Config):
         return self
 
     @classmethod
-    def create_from_context(cls, context: InputContext | OutputContext) -> "IcebergCatalogConfig":
+    def create_from_context(
+        cls, context: InputContext | OutputContext
+    ) -> "IcebergCatalogConfig":
         if context.resource_config is None:
             raise ValueError(
                 "Resource config is required to create IcebergCatalogConfig"
