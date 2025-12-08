@@ -199,6 +199,8 @@ def table_writer(
                 MAIN_BRANCH,
                 branch_config.branch_name,
             )
+            # Note: Passing branch_name=None to PyIceberg causes silent write failures
+            # Always use an explicit branch name (default to MAIN_BRANCH)
             branch_name = MAIN_BRANCH
             first_table_write_and_branch_requested = True
     else:
@@ -259,7 +261,12 @@ def create_branch_if_not_exists(
     """Creates a branch if it does not exist"""
     # Check if branch already exists - refs() returns a dict with ref names as keys
     refs_dict = table.refs()
-    logger.debug("Current table refs: %s", list(refs_dict.keys()))
+    current_snapshot = table.current_snapshot()
+    logger.debug(
+        "Current table refs: %s (current snapshot: %s)",
+        list(refs_dict.keys()),
+        current_snapshot.snapshot_id if current_snapshot else None,
+    )
 
     if branch_config.branch_name not in refs_dict:
         # If table has no snapshot yet (newly created), we can't create a branch from it
@@ -392,10 +399,10 @@ def overwrite_table(
 
     Args:
         table (table.Table): Iceberg table
-        df (pa.Table): Data to write to the table
+        data (pa.Table): Data to write to the table
         overwrite_filter (Union[E.BooleanExpression, str]): Filter to apply to the overwrite operation
         snapshot_properties (dict[str, str]): Properties to set on the snapshot
-        branch (str): Table branch to use. If the branch does not yet exist it will be created.
+        branch_name (str | None): Table branch to use. If None, uses the main branch.
 
     Raises:
         RetryError: Raised when the commit fails after the maximum number of retries
@@ -422,7 +429,7 @@ def append_to_table(
         table (table.Table): Iceberg table
         data (pa.Table): Data to append to the table
         snapshot_properties (dict[str, str]): Properties to set on the snapshot
-        branch (str): Table branch to use. If the branch does not yet exist it will be created.
+        branch_name (str | None): Table branch to use. If None, uses the main branch.
     """
     IcebergTableAppenderWithRetry(table=table).execute(
         retries=3,
@@ -445,6 +452,7 @@ def upsert_to_table(
         table (table.Table): Iceberg table
         data (pa.Table): Data to upsert to the table
         upsert_options (UpsertOptions): Upsert options with join columns and any overrides for upsert action conditions
+        branch_name (str | None): Table branch to use. If None, uses the main branch.
 
     Raises:
         RetryError: Raised when the commit fails after the maximum number of retries
