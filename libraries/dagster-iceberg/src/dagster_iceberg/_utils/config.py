@@ -109,8 +109,22 @@ class IcebergCatalogConfig(Config):
             raise ValueError(
                 "Resource config is required to create IcebergCatalogConfig"
             )
+
+        # Extract the config from the resource_config dict
+        # resource_config structure: {"name": ..., "config": ..., "schema_": ...}
         if isinstance(context.resource_config, dict):
-            out = cls.model_validate(context.resource_config)
+            config = context.resource_config.get("config")
+            if config is None:
+                # If config is None, return default IcebergCatalogConfig
+                return cls()
+            if isinstance(config, dict):
+                out = cls.model_validate(config)
+            elif isinstance(config, IcebergCatalogConfig):
+                out = config
+            else:
+                raise ValueError(
+                    f"Invalid config type in resource_config: {type(config)}"
+                )
         elif isinstance(context.resource_config, IcebergCatalogConfig):
             out = context.resource_config
         else:
