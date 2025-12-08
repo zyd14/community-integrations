@@ -237,6 +237,7 @@ def table_writer(
             table=table,
             data=data,
             upsert_options=upsert_options,
+            branch_name=branch_name,
         )
     else:
         raise ValueError(f"Unexpected write mode: {write_mode}")
@@ -435,6 +436,7 @@ def upsert_to_table(
     table: iceberg_table.Table,
     data: pa.Table,
     upsert_options: UpsertOptions,
+    branch_name: str | None = None,
 ):
     """Upserts data to an iceberg table and retries on failure
 
@@ -451,29 +453,7 @@ def upsert_to_table(
         exception_types=CommitFailedException,
         data=data,
         upsert_options=upsert_options,
-    )
-
-
-def upsert_to_table(
-    table: iceberg_table.Table,
-    data: pa.Table,
-    upsert_options: UpsertOptions,
-):
-    """Upserts data to an iceberg table and retries on failure
-
-    Args:
-        table (table.Table): Iceberg table
-        data (pa.Table): Data to upsert to the table
-        upsert_options (UpsertOptions): Upsert options with join columns and any overrides for upsert action conditions
-
-    Raises:
-        RetryError: Raised when the commit fails after the maximum number of retries
-    """
-    IcebergTableUpserterWithRetry(table=table).execute(
-        retries=3,
-        exception_types=CommitFailedException,
-        data=data,
-        upsert_options=upsert_options,
+        branch_name=branch_name,
     )
 
 
@@ -540,6 +520,7 @@ class IcebergTableUpserterWithRetry(IcebergOperationWithRetry):
         self,
         data: pa.Table,
         upsert_options: UpsertOptions,
+        branch_name: str | None = None,
     ):
         self.logger.debug(
             "Upserting to table with join_cols=%s, when_matched_update_all=%s, when_not_matched_insert_all=%s",
@@ -553,25 +534,5 @@ class IcebergTableUpserterWithRetry(IcebergOperationWithRetry):
             join_cols=upsert_options.join_cols,
             when_matched_update_all=upsert_options.when_matched_update_all,
             when_not_matched_insert_all=upsert_options.when_not_matched_insert_all,
-        )
-
-
-class IcebergTableUpserterWithRetry(IcebergOperationWithRetry):
-    def operation(
-        self,
-        data: pa.Table,
-        upsert_options: UpsertOptions,
-    ):
-        self.logger.debug(
-            "Upserting to table with join_cols=%s, when_matched_update_all=%s, when_not_matched_insert_all=%s",
-            upsert_options.join_cols,
-            upsert_options.when_matched_update_all,
-            upsert_options.when_not_matched_insert_all,
-        )
-
-        self.table.upsert(
-            df=data,
-            join_cols=upsert_options.join_cols,
-            when_matched_update_all=upsert_options.when_matched_update_all,
-            when_not_matched_insert_all=upsert_options.when_not_matched_insert_all,
+            branch=branch_name,
         )
