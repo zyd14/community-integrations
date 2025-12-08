@@ -21,6 +21,7 @@ from dagster_iceberg._utils import (
     preview,
     table_writer,
 )
+from dagster_iceberg._utils.io import UpsertOptions
 from dagster_iceberg.config import IcebergCatalogConfig
 
 if TYPE_CHECKING:
@@ -69,6 +70,9 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         # Get branch_config from nested config object
         config = IcebergCatalogConfig.model_validate(context.resource_config["config"])
+        upsert_options = self._get_upsert_options(
+            context, write_mode_with_output_override
+        )
 
         table_writer(
             table_slice=table_slice,
@@ -85,6 +89,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             write_mode=write_mode_with_output_override,
             error_if_branch_and_no_snapshots=config.error_if_branch_and_no_snapshots,
             partition_field_name_prefix=partition_field_name_prefix,
+            upsert_options=upsert_options,
         )
 
         table_ = connection.load_table(f"{table_slice.schema}.{table_slice.table}")
@@ -160,6 +165,49 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
                 f"Branch {config.branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table"
             )
         return snapshot
+
+    def _get_upsert_options(
+        self, context: OutputContext, write_mode: WriteMode
+    ) -> UpsertOptions | None:
+        """Get upsert options from output metadata if available, otherwise from definition metadata.
+        Returns None if no upsert options are found in asset definition or output metadata.
+
+         Raises:
+             ValueError: If upsert options are not provided when using upsert write mode.
+        """
+
+        def parse_upsert_options(metadata: dict) -> dict:
+            if isinstance(metadata, UpsertOptions):
+                return metadata.model_dump()
+            if isinstance(metadata, dict):
+                return metadata
+            raise ValueError(f"Invalid upsert options type: {type(metadata)}")
+
+        upsert_options = None
+        if write_mode == WriteMode.upsert:
+            # Output metadata takes precedence over definition metadata
+            output_upsert_options = context.output_metadata.get("upsert_options", {})
+            definition_upsert_options = context.definition_metadata.get(
+                "upsert_options", {}
+            )
+            output_upsert_options = parse_upsert_options(output_upsert_options)
+            definition_upsert_options = parse_upsert_options(definition_upsert_options)
+
+            upsert_options = {**definition_upsert_options, **output_upsert_options}
+            if upsert_options:
+                upsert_options = UpsertOptions.model_validate(upsert_options)
+            else:
+                raise ValueError(
+                    "upsert_options must be provided when using upsert write mode, either in definition metadata or output metadata"
+                )
+        elif context.output_metadata.get(
+            "upsert_options"
+        ) or context.definition_metadata.get("upsert_options"):
+            context.log.debug(
+                "upsert_options detected but write_mode=%s is not 'upsert'. Ignoring upsert_options.",
+                write_mode,
+            )
+        return upsert_options
 
     def load_input(
         self,

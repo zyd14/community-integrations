@@ -47,3 +47,4 @@ The table below shows which PyIceberg features are currently available.
 | Table properties | ✅ | https://py.iceberg.apache.org/api/#table-properties | Added as metadata on an asset. NB: config options are not checked explicitly because users can add any key-value pair to a table. Available properties [here](https://py.iceberg.apache.org/configuration/#tables). |
 | Snapshot properties | ✅ | https://py.iceberg.apache.org/api/#snapshot-properties | Useful for correlating Dagster runs to snapshots by adding tags to snapshot. Not configurable by end-user. |
 | Table branching | ✅ | https://iceberg.apache.org/docs/latest/branching/ | Allow writing to a branch of a table, which can be very useful for running development workflows without overwriting production data |
+| Upsert | ✅ | https://py.iceberg.apache.org/api/#upsert | Update existing rows and insert new rows in a single operation. Configure via `write_mode: "upsert"` and `upsert_options` in asset metadata. |

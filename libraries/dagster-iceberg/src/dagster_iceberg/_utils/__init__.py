@@ -5,6 +5,9 @@ from dagster_iceberg._utils.io import (
     DEFAULT_WRITE_MODE as DEFAULT_WRITE_MODE,
 )
 from dagster_iceberg._utils.io import (
+    UpsertOptions as UpsertOptions,
+)
+from dagster_iceberg._utils.io import (
     WriteMode as WriteMode,
 )
 from dagster_iceberg._utils.io import (
