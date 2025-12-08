@@ -2,8 +2,8 @@ import datetime as dt
 
 import pyarrow as pa
 import pytest
-from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
 from dagster._core.definitions import TimeWindow
+from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
 from pyiceberg import schema as iceberg_schema
 from pyiceberg import table as iceberg_table
 from pyiceberg import transforms

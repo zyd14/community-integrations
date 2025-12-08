@@ -1,6 +1,6 @@
 from typing import Any, Final
 
-from dagster import Config, InitResourceContext
+from dagster import Config, InitResourceContext, InputContext, OutputContext
 from dagster._annotations import public
 from pydantic import Field, model_validator
 from pyiceberg.table.refs import MAIN_BRANCH
@@ -26,13 +26,16 @@ class IcebergBranchConfig(Config):
         description="Name of the branch to use. If the specified branch does not yet exist it will be created.",
     )
     max_snapshot_age_ms: int | None = Field(
-        description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted."
+        default=None,
+        description="Maximum age of a snapshot in milliseconds. If a snapshot is older than this age, it will be deleted.",
     )
     min_snapshots_to_keep: int | None = Field(
-        description="Minimum number of snapshots to keep. If the number of snapshots exceeds this number, the oldest snapshot will be deleted."
+        default=None,
+        description="Minimum number of snapshots to keep. If the number of snapshots exceeds this number, the oldest snapshot will be deleted.",
     )
     max_ref_age_ms: int | None = Field(
-        description="Maximum age of a reference in milliseconds. If a reference is older than this age, it will be deleted."
+        default=None,
+        description="Maximum age of a reference in milliseconds. If a reference is older than this age, it will be deleted.",
     )
 
 
@@ -74,9 +77,12 @@ class IcebergCatalogConfig(Config):
 
     """
 
-    properties: dict[str, Any] = Field(default_factory=dict, description="Configuration for Iceberg catalog properties. See https://py.iceberg.apache.org/configuration/#catalogs for options")
+    properties: dict[str, Any] = Field(
+        default_factory=dict,
+        description="Configuration for Iceberg catalog properties. See https://py.iceberg.apache.org/configuration/#catalogs for options",
+    )
     branch_config: IcebergBranchConfig = Field(
-        default_factory=IcebergBranchConfig,
+        default_factory=lambda: IcebergBranchConfig(),
         description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.",
     )
     error_if_branch_and_no_snapshots: bool = Field(
@@ -96,13 +102,19 @@ class IcebergCatalogConfig(Config):
         return self
 
     @classmethod
-    def create_from_context(cls, context: InitResourceContext) -> "IcebergCatalogConfig":
+    def create_from_context(
+        cls, context: InitResourceContext | OutputContext | InputContext
+    ) -> "IcebergCatalogConfig":
         if context.resource_config is None:
-            raise ValueError("Resource config is required to create IcebergCatalogConfig")
+            raise ValueError(
+                "Resource config is required to create IcebergCatalogConfig"
+            )
         if isinstance(context.resource_config, dict):
             out = cls.model_validate(context.resource_config)
         elif isinstance(context.resource_config, IcebergCatalogConfig):
             out = context.resource_config
         else:
-            raise ValueError(f"Invalid resource config type: {type(context.resource_config)}")
+            raise ValueError(
+                f"Invalid resource config type: {type(context.resource_config)}"
+            )
         return out

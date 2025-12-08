@@ -197,9 +197,11 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         return upsert_options
 
     def _get_snapshot(
-        self, context: OutputContext, table: ibt.Table
+        self, context: OutputContext | InputContext, table: ibt.Table
     ) -> "Snapshot | None":
         # Get branch_config from nested config object
+        if context.resource_config is None:
+            raise ValueError("Resource config is required to get snapshot")
         config = IcebergCatalogConfig.model_validate(context.resource_config["config"])
         snapshot = table.snapshot_by_name(config.branch_config.branch_name)
         table_path = ".".join(table.name())

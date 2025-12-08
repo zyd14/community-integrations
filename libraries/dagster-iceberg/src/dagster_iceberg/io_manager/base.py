@@ -98,7 +98,7 @@ class IcebergDbClient(DbClient):
         else:
             config = resource_config["config"]
             # Handle case where config might be a Pydantic model or a dict
-            if hasattr(config, "properties"):
+            if isinstance(config, IcebergCatalogConfig):
                 properties = config.properties
             else:
                 properties = config["properties"]
