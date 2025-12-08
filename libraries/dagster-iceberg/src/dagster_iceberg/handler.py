@@ -203,7 +203,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         table_path = ".".join(table.name())
         if snapshot is None:
             raise ValueError(
-                f"Branch {config.branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table"
+                f"Branch {config.branch_config.branch_name} was not found in table refs for {table_path}. Unable to read from branch"
             )
         return snapshot
 
