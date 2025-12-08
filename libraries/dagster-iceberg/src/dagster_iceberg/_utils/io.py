@@ -253,6 +253,8 @@ def table_writer(
         logger.debug(
             "Creating branch %s after initial write", branch_config.branch_name
         )
+        # Refresh table to ensure we have the latest snapshot
+        table = table.refresh()
         create_branch_if_not_exists(table=table, branch_config=branch_config)
 
 
@@ -507,6 +509,12 @@ class IcebergTableOverwriterWithRetry(IcebergOperationWithRetry):
             snapshot_properties=(
                 snapshot_properties if snapshot_properties is not None else {}
             ),
+        )
+        # Refresh table metadata to see the new snapshot
+        self.table = self.table.refresh()
+        self.logger.debug(
+            "Overwrite completed, current snapshot after refresh: %s",
+            self.table.current_snapshot(),
         )
 
 
