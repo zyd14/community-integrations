@@ -2,6 +2,7 @@ from collections.abc import Sequence
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
+from dagster_iceberg._utils import UpsertOptions
 import pyarrow as pa
 import pytest
 from dagster import build_output_context
@@ -285,6 +286,11 @@ def test_handle_output_upsert_with_definition_metadata(
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
 
     handler = MockTypeHandler()
@@ -381,6 +387,11 @@ def test_upsert_actual_operation(
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
 
     handler = MockTypeHandler()

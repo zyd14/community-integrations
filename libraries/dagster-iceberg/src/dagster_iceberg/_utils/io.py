@@ -249,6 +249,7 @@ def table_writer(
         logger.debug(
             "Creating branch %s after initial write", branch_config.branch_name
         )
+        table = table.refresh()
         create_branch_if_not_exists(table=table, branch_config=branch_config)
 
 

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Generic, TypeVar, cast
+from typing import Generic, TypeVar, cast
 
 import pyarrow as pa
 from dagster import (
@@ -13,6 +13,7 @@ from dagster._annotations import public
 from dagster._core.storage.db_io_manager import DbTypeHandler, TableSlice
 from pyiceberg import table as ibt
 from pyiceberg.catalog import Catalog
+from pyiceberg.table.snapshots import Snapshot
 
 from dagster_iceberg._utils import (
     DEFAULT_PARTITION_FIELD_NAME_PREFIX,
@@ -23,9 +24,6 @@ from dagster_iceberg._utils import (
 )
 from dagster_iceberg._utils.io import UpsertOptions
 from dagster_iceberg.config import IcebergCatalogConfig
-
-if TYPE_CHECKING:
-    from pyiceberg.table.snapshots import Snapshot
 
 U = TypeVar("U")
 
@@ -67,12 +65,12 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
 
         partition_field_name_prefix = self._get_partition_field_name_prefix(context)
         write_mode_with_output_override = self._get_write_mode(context)
-
-        # Get branch_config from nested config object
-        config = IcebergCatalogConfig.model_validate(context.resource_config["config"])
         upsert_options = self._get_upsert_options(
             context, write_mode_with_output_override
         )
+
+        # Get branch_config from nested config object
+        config = IcebergCatalogConfig.create_from_context(context)
 
         table_writer(
             table_slice=table_slice,
@@ -153,19 +151,6 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
             error_msg = f"Invalid write mode: {context.output_metadata.get('write_mode')}. Valid modes are {[mode.value for mode in WriteMode]}"
             raise ValueError(error_msg) from ve
 
-    def _get_snapshot(
-        self, context: OutputContext, table: ibt.Table
-    ) -> "Snapshot | None":
-        # Get branch_config from nested config object
-        config = IcebergCatalogConfig.model_validate(context.resource_config["config"])
-        snapshot = table.snapshot_by_name(config.branch_config.branch_name)
-        table_path = ".".join(table.name())
-        if snapshot is None:
-            raise ValueError(
-                f"Branch {config.branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table"
-            )
-        return snapshot
-
     def _get_upsert_options(
         self, context: OutputContext, write_mode: WriteMode
     ) -> UpsertOptions | None:
@@ -208,6 +193,19 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
                 write_mode,
             )
         return upsert_options
+
+    def _get_snapshot(
+        self, context: OutputContext | InputContext, table: ibt.Table
+    ) -> Snapshot:
+        # Get branch_config from nested config object
+        config = IcebergCatalogConfig.create_from_context(context)
+        snapshot = table.snapshot_by_name(config.branch_config.branch_name)
+        table_path = ".".join(table.name())
+        if snapshot is None:
+            raise ValueError(
+                f"Branch {config.branch_config.branch_name} does not found in table refs for {table_path}. Unable to branch snapshot for table"
+            )
+        return snapshot
 
     def load_input(
         self,
