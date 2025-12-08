@@ -17,7 +17,11 @@ from dagster import (
 from pyiceberg.catalog import Catalog
 from pyiceberg.table.refs import SnapshotRefType
 
-from dagster_iceberg.config import IcebergBranchConfig, IcebergCatalogConfig, UpsertOptions
+from dagster_iceberg.config import (
+    IcebergBranchConfig,
+    IcebergCatalogConfig,
+    UpsertOptions,
+)
 from dagster_iceberg.io_manager.polars import PolarsIcebergIOManager
 
 
