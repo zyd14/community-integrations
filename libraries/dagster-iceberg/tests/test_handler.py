@@ -2,7 +2,6 @@ from collections.abc import Sequence
 from unittest.mock import Mock, patch
 from uuid import uuid4
 
-from dagster_iceberg._utils import UpsertOptions
 import pyarrow as pa
 import pytest
 from dagster import build_output_context
@@ -10,6 +9,7 @@ from dagster._core.storage.db_io_manager import TableSlice
 from pyiceberg.catalog import Catalog
 from pyiceberg.table import Table as IcebergTable
 
+from dagster_iceberg._utils import UpsertOptions
 from dagster_iceberg._utils.config import DEFAULT_PARTITION_FIELD_NAME_PREFIX
 from dagster_iceberg._utils.io import WriteMode
 from dagster_iceberg.config import IcebergBranchConfig, IcebergCatalogConfig
@@ -48,6 +48,7 @@ def mock_catalog():
     mock_snapshot = Mock()
     mock_snapshot.model_dump.return_value = {"snapshot_id": "test_snapshot"}
     mock_table.current_snapshot.return_value = mock_snapshot
+    mock_table.snapshot_by_name.return_value = mock_snapshot
     catalog.load_table.return_value = mock_table
     return catalog
 
@@ -156,7 +157,7 @@ def test_handle_output_invalid_write_mode():
         run_id=run_id,
     )
     handler = MockTypeHandler()
-    with pytest.raises(ValueError, match="^Invalid write mode.*"):
+    with pytest.raises(ValueError, match=r"^Invalid write mode.*"):
         handler.handle_output(
             context=context,
             table_slice=table_slice,
@@ -335,6 +336,7 @@ def test_handle_output_upsert_with_output_metadata_override(
     mock_context.run_id = str(uuid4())
     mock_context.has_asset_partitions = False
     mock_context.resource_config = {"config": {}}
+    mock_context.add_output_metadata = Mock()
 
     handler = MockTypeHandler()
     handler.handle_output(
@@ -435,7 +437,7 @@ def test_handle_output_upsert_missing_options(
     )
 
     handler = MockTypeHandler()
-    with pytest.raises(ValueError, match=".*upsert_options.*"):
+    with pytest.raises(ValueError, match=r".*upsert_options.*"):
         handler.handle_output(
             context=context,
             table_slice=table_slice,
