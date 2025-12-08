@@ -74,7 +74,7 @@ class IcebergCatalogConfig(Config):
 
     """
 
-    properties: dict[str, Any]
+    properties: dict[str, Any] = Field(default_factory=dict, description="Configuration for Iceberg catalog properties. See https://py.iceberg.apache.org/configuration/#catalogs for options")
     branch_config: IcebergBranchConfig = Field(
         default_factory=IcebergBranchConfig,
         description="Configuration for Iceberg table branch. If the specified branch does not yet exist it will be created.",
