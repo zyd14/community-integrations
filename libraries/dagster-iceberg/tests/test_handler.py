@@ -10,7 +10,12 @@ from pyiceberg.catalog import Catalog
 from pyiceberg.table import Table as IcebergTable
 
 from dagster_iceberg._utils.io import WriteMode
-from dagster_iceberg.config import DEFAULT_PARTITION_FIELD_NAME_PREFIX, IcebergBranchConfig, IcebergCatalogConfig, UpsertOptions
+from dagster_iceberg.config import (
+    DEFAULT_PARTITION_FIELD_NAME_PREFIX,
+    IcebergBranchConfig,
+    IcebergCatalogConfig,
+    UpsertOptions,
+)
 from dagster_iceberg.handler import IcebergBaseTypeHandler
 
 

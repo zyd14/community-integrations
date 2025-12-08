@@ -8,6 +8,7 @@ from typing import (
     TypeVar,
     cast,
 )
+
 from dagster import TimeWindow
 from dagster._core.storage.db_io_manager import TablePartitionDimension, TableSlice
 from pyiceberg import expressions as E
