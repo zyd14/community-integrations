@@ -1,6 +1,6 @@
 from typing import Any, Final
 
-from dagster import Config, OutputContext
+from dagster import Config, InputContext, OutputContext
 from dagster._annotations import public
 from pydantic import Field, model_validator
 from pyiceberg.table.refs import MAIN_BRANCH
@@ -102,7 +102,7 @@ class IcebergCatalogConfig(Config):
         return self
 
     @classmethod
-    def create_from_context(cls, context: OutputContext) -> "IcebergCatalogConfig":
+    def create_from_context(cls, context: InputContext | OutputContext) -> "IcebergCatalogConfig":
         if context.resource_config is None:
             raise ValueError(
                 "Resource config is required to create IcebergCatalogConfig"
