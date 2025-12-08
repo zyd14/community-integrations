@@ -9,10 +9,8 @@ from dagster._core.storage.db_io_manager import TableSlice
 from pyiceberg.catalog import Catalog
 from pyiceberg.table import Table as IcebergTable
 
-from dagster_iceberg._utils.config import (
-    DEFAULT_PARTITION_FIELD_NAME_PREFIX
-)
-from dagster_iceberg._utils.io import
+from dagster_iceberg._utils.config import DEFAULT_PARTITION_FIELD_NAME_PREFIX
+from dagster_iceberg._utils.io import (
     UpsertOptions,
     WriteMode,
 )
@@ -160,7 +158,7 @@ def test_handle_output_invalid_write_mode():
         run_id=run_id,
     )
     handler = MockTypeHandler()
-    with pytest.raises(ValueError, match="^Invalid write mode.*"):
+    with pytest.raises(ValueError, match=r"^Invalid write mode.*"):
         handler.handle_output(
             context=context,
             table_slice=table_slice,
@@ -429,7 +427,7 @@ def test_handle_output_upsert_missing_options(
     )
 
     handler = MockTypeHandler()
-    with pytest.raises(ValueError, match=".*upsert_options.*"):
+    with pytest.raises(ValueError, match=r".*upsert_options.*"):
         handler.handle_output(
             context=context,
             table_slice=table_slice,
