@@ -50,6 +50,7 @@ def mock_catalog():
     mock_snapshot = Mock()
     mock_snapshot.model_dump.return_value = {"snapshot_id": "test_snapshot"}
     mock_table.current_snapshot.return_value = mock_snapshot
+    mock_table.snapshot_by_name.return_value = mock_snapshot
     catalog.load_table.return_value = mock_table
     return catalog
 
@@ -148,7 +149,11 @@ def test_handle_output_metadata_passing(
     )
 
 
-def test_handle_output_invalid_write_mode():
+def test_handle_output_invalid_write_mode(
+    mock_catalog: Mock,
+    table_slice: TableSlice,
+    sample_data: pa.Table,
+):
     definition_metadata = {
         "write_mode": "invalid",
     }
@@ -156,6 +161,11 @@ def test_handle_output_invalid_write_mode():
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
     handler = MockTypeHandler()
     with pytest.raises(ValueError, match=r"^Invalid write mode.*"):
@@ -288,6 +298,11 @@ def test_handle_output_upsert_with_definition_metadata(
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
 
     handler = MockTypeHandler()
@@ -384,6 +399,11 @@ def test_upsert_actual_operation(
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
 
     handler = MockTypeHandler()
@@ -424,6 +444,11 @@ def test_handle_output_upsert_missing_options(
     context = build_output_context(
         definition_metadata=definition_metadata,
         run_id=run_id,
+        resource_config={
+            "config": IcebergCatalogConfig(
+                properties={"uri": "sqlite:///:memory:"}
+            ).model_dump()
+        },
     )
 
     handler = MockTypeHandler()
