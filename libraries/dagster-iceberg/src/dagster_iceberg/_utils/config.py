@@ -1,6 +1,6 @@
 from typing import Any, Final
 
-from dagster import Config
+from dagster import Config, InitResourceContext
 from dagster._annotations import public
 from pydantic import Field, model_validator
 from pyiceberg.table.refs import MAIN_BRANCH
@@ -94,3 +94,15 @@ class IcebergCatalogConfig(Config):
         if self.partition_field_name_prefix == "":
             raise ValueError("partition_field_name_prefix cannot be an empty string")
         return self
+
+    @classmethod
+    def create_from_context(cls, context: InitResourceContext) -> "IcebergCatalogConfig":
+        if context.resource_config is None:
+            raise ValueError("Resource config is required to create IcebergCatalogConfig")
+        if isinstance(context.resource_config, dict):
+            out = cls.model_validate(context.resource_config)
+        elif isinstance(context.resource_config, IcebergCatalogConfig):
+            out = context.resource_config
+        else:
+            raise ValueError(f"Invalid resource config type: {type(context.resource_config)}")
+        return out

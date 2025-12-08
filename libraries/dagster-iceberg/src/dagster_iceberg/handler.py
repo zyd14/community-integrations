@@ -72,7 +72,7 @@ class IcebergBaseTypeHandler(DbTypeHandler[U], Generic[U]):
         )
 
         # Get branch_config from nested config object
-        config = IcebergCatalogConfig.model_validate(context.resource_config["config"])
+        config = IcebergCatalogConfig.create_from_context(context)
 
         table_writer(
             table_slice=table_slice,
