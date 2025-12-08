@@ -9,9 +9,11 @@ from dagster_iceberg._utils.config import (
     IcebergBranchConfig,
     IcebergCatalogConfig,
 )
+from dagster_iceberg._utils.io import UpsertOptions
 
 __all__ = [
     "DEFAULT_PARTITION_FIELD_NAME_PREFIX",
     "IcebergBranchConfig",
     "IcebergCatalogConfig",
+    "UpsertOptions",
 ]
