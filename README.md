@@ -4,7 +4,9 @@
 
 ---
 
-Community built and maintained integrations in the Dagster ecosystem.
+Community built and maintained integrations for the Dagster ecosystem.
+
+See https://docs.dagster.io/integrations/libraries for documentation.
 
 ## Contributing
 
@@ -16,7 +18,9 @@ See [RELEASES.md](RELEASES.md).
 
 ## Community
 
-We are extremely grateful and appreciative of all of the hard work provided by our community members. Thank you!
+We are extremely grateful and appreciative of all of the hard work provided by our community members.
+
+Thank you!
 
 <div align="center">
   <a align="center" href="https://github.com/dagster-io/community-integrations/graphs/contributors">
