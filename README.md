@@ -16,15 +16,7 @@ See [RELEASES.md](RELEASES.md).
 
 ## Community
 
-We are very appreciative of the work from our community members, and would like to recognize:
-
-* [GingerYouth](https://github.com/GingerYouth) for their work on the Java Pipes implementation
-* [marijncv](https://github.com/marijncv) for their work on the Rust Pipes implementation
-* [christeefy](https://github.com/christeefy) for their work on the Rust Pipes implementation
-* [JasperHG90](https://github.com/JasperHG90) for their work on the Iceberg integration
-* [danielgafni](https://github.com/danielgafni) for their work on the Polars integration
-
-Thank you all!
+We are extremely grateful and appreciative of all of the hard work provided by our community members. Thank you!
 
 <div align="center">
   <a align="center" href="https://github.com/dagster-io/community-integrations/graphs/contributors">
